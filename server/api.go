@@ -40,6 +40,7 @@ func ListenAndServe(cmdPort string){
     // User Endpoints
     mux.HandleFunc("/api/me", Middleware(GetMeHandler))
     mux.HandleFunc("/api/user", Middleware(UserHandler))
+    mux.HandleFunc("/api/user/changepassword", Middleware(ChangePasswordHandler))
 	mux.HandleFunc("/api/user/ban", Middleware(UserBanHandler))
 
 	// Login & LogOut

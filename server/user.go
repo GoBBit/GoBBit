@@ -8,6 +8,12 @@ import (
 	"GoBBit/db"
 )
 
+type UserUpdate struct{
+    Email string
+    Picture string
+    Password string
+    IsAdmin bool
+}
 func GetMeHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 	if e != nil{
 		w.WriteHeader(http.StatusUnauthorized)
@@ -15,17 +21,85 @@ func GetMeHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+    if r.Method == "GET"{
+    	w.Header().Add("Content-Type", "application/json")
+    	json.NewEncoder(w).Encode(user)
+        return
+    }else if r.Method == "PUT"{
+        userUpdate := UserUpdate{}
+        err := json.NewDecoder(r.Body).Decode(&userUpdate)
+        if err != nil{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "invalid_data")
+            return
+        }
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_user_not_found")
+            return
+        }
+
+        if userUpdate.Email != ""{
+            user.Email = userUpdate.Email
+        }
+
+        if userUpdate.Picture != ""{
+            user.Picture = userUpdate.Picture
+        }
+
+        db.UpdateUser(user)
+        json.NewEncoder(w).Encode(user)
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
 
 }
 
-type UserUpdate struct{
-    Email string
-    Picture string
-    Password string
-    IsAdmin bool
+type UserPasswordUpdate struct{
+    NewPassword string
+    OldPassword string
 }
+func ChangePasswordHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    if r.Method == "PUT"{
+        userUpdate := UserPasswordUpdate{}
+        err := json.NewDecoder(r.Body).Decode(&userUpdate)
+        if err != nil{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "invalid_data")
+            return
+        }
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_user_not_found")
+            return
+        }
+
+        if !user.ChangePassword(userUpdate.OldPassword, userUpdate.NewPassword){
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "invalid_data")
+            return
+        }
+
+        db.UpdateUser(user)
+        json.NewEncoder(w).Encode(user)
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+
 func UserHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
 	slug := r.URL.Query().Get("u") // user slug

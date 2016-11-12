@@ -166,6 +166,16 @@ func (u *User) GeneratePasswordHash(pass string) (string){
     return u.Password
 }
 
+func (u *User) ChangePassword(oldpass, newpass string) (bool){
+    oldCheck := utils.CalculateHash(u.Username + oldpass)
+    if u.Password != oldCheck{
+        return false
+    }
+
+    u.Password = utils.CalculateHash(u.Username + newpass)
+    return true
+}
+
 
 
 

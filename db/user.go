@@ -16,7 +16,7 @@ type User struct{
 	Email string `json:"email"`
 	Password string `json:"password"`
 	Picture string `json:"picture"`
-    Followed_Communities []bson.ObjectId `json:"followed_communities"`
+    Followed_Communities string `json:"followed_communities"` // slugs
     Last_Post_Time int64 `json:"last_post_time"`
     Last_Online_Time int64 `json:"last_online_time"`
     Creation_Date int64 `json:"creation_date"`

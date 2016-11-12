@@ -13,7 +13,7 @@ type Topic struct{
     Slug string `json:"slug"`
     Content string `json:"content"` // main post content
 	Uid bson.ObjectId `json:"uid"`
-	Cid bson.ObjectId `json:"cid"` // community ID
+	Community string `json:"cid"` // community slug
 	Creation_Date int64 `json:"creation_date"`
     Editation_Date int64 `json:"editation_date"`
     Last_Update int64 `json:"last_update"`
@@ -29,19 +29,28 @@ func AddTopic(u Topic) (Topic, error){
     return u, err
 }
 
-func UpdateTopic(id, newTitle, newContent string) (error){
+func UpdateTopic(u Topic) error{
     db := GetDB()
 
-    err := db.C("topic").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{ "$set": bson.M{"content": newContent, "title": newTitle} })
+    err := db.C("topic").Update(bson.M{"id": u.Id}, u)
 
     return err
+}
+
+func GetTopicById(id string) (Topic, error){
+    db := GetDB()
+    
+    u := Topic{}
+    err := db.C("topic").Find(bson.M{"id":bson.ObjectIdHex(id)}).One(&u)
+
+    return u, err
 }
 
 
 func DeleteTopic(id string) (error){
     db := GetDB()
 
-    _, err := db.C("topic").RemoveAll(bson.M{"id":id})
+    _, err := db.C("topic").RemoveAll(bson.M{"id":bson.ObjectIdHex(id)})
 
     return err
 }

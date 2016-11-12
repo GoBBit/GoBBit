@@ -73,8 +73,8 @@ func EnsureIndex(){
     db.C("community").EnsureIndex(mgo.Index{Key: []string{"slug"}, Unique: true, DropDups: true})
 
     db.C("topic").EnsureIndex(mgo.Index{Key: []string{"id"}, Unique: true, DropDups: true})
-    db.C("topic").EnsureIndex(mgo.Index{Key: []string{"cid"}, Unique: true, DropDups: true})
-    db.C("topic").EnsureIndex(mgo.Index{Key: []string{"last_update"}, Unique: true, DropDups: true})
+    db.C("topic").EnsureIndex(mgo.Index{Key: []string{"community"}, Unique: false})
+    db.C("topic").EnsureIndex(mgo.Index{Key: []string{"last_update"}, Unique: false})
 
     db.C("post").EnsureIndex(mgo.Index{Key: []string{"id"}, Unique: true, DropDups: true})
     db.C("post").EnsureIndex(mgo.Index{Key: []string{"creation_date"}, Unique: true, DropDups: true})

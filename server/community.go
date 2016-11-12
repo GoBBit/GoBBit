@@ -133,7 +133,8 @@ func CommunityModsHandler(w http.ResponseWriter, r *http.Request, user db.User, 
     }
 
     if r.Method == "GET"{
-        json.NewEncoder(w).Encode(community)
+        mods, _ := db.GetUsersByIdsSafe(community.Mods)
+        json.NewEncoder(w).Encode(mods)
         return
     }
 
@@ -163,6 +164,58 @@ func CommunityModsHandler(w http.ResponseWriter, r *http.Request, user db.User, 
         return
     }else if r.Method == "DELETE"{
         db.DeleteModsToCommunity(community.Id.Hex(), modUid)
+        fmt.Fprintf(w, "ok")
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+
+func CommunityBannedUsersHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+
+    slug := r.URL.Query().Get("c") // community slug
+    community, err := db.GetCommunityBySlug(slug)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_community_not_found")
+        return
+    }
+
+    if r.Method == "GET"{
+        mods, _ := db.GetUsersByIdsSafe(community.Banned_Users)
+        json.NewEncoder(w).Encode(mods)
+        return
+    }
+
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    // Only admins or mods can add/delete mods
+    if !user.IsAdmin && !community.IsMod(user.Id){
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "error_unauthorized")
+        return
+    }
+
+    banUid := r.URL.Query().Get("uid") // user uid to add or remove
+    if r.Method == "POST"{
+        db.DeleteBannedUserToCommunity(community.Id.Hex(), banUid) // delete if already added
+        err := db.AddBannedUserToCommunity(community.Id.Hex(), banUid)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "invalid_data %s", err)
+            return
+        }
+        json.NewEncoder(w).Encode(community)
+        return
+    }else if r.Method == "DELETE"{
+        db.DeleteBannedUserToCommunity(community.Id.Hex(), banUid)
         fmt.Fprintf(w, "ok")
         return
     }else{

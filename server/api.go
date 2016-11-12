@@ -49,6 +49,7 @@ func ListenAndServe(cmdPort string){
     // Community Endpoints
     mux.HandleFunc("/api/community", Middleware(CommunityHandler))
     mux.HandleFunc("/api/community/mods", Middleware(CommunityModsHandler))
+    mux.HandleFunc("/api/community/ban", Middleware(CommunityBannedUsersHandler))
 
 	// Login & LogOut
 	mux.HandleFunc("/register", Middleware(RegisterHandler))

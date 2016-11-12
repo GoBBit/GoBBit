@@ -80,6 +80,22 @@ func DeleteModsToCommunity(id, uid string) error{
     return err
 }
 
+func AddBannedUserToCommunity(id, uid string) error{
+    db := GetDB()
+
+    err := db.C("community").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$push": bson.M{"banned_users": bson.ObjectIdHex(uid)}})
+
+    return err
+}
+
+func DeleteBannedUserToCommunity(id, uid string) error{
+    db := GetDB()
+
+    err := db.C("community").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$pull": bson.M{"banned_users": bson.ObjectIdHex(uid)}})
+
+    return err
+}
+
 func (c *Community) GenerateSlug() (string){
     c.Slug = slug.Slug(c.Name)
     return c.Slug

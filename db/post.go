@@ -37,7 +37,7 @@ func UpdatePost(id, newContent string) (error){
 func DeletePost(id string) (error){
     db := GetDB()
 
-    _, err := db.C("post").RemoveAll(bson.M{"id":id})
+    _, err := db.C("post").RemoveAll(bson.M{"id":bson.ObjectIdHex(id)})
 
     return err
 }

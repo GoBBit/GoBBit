@@ -46,6 +46,10 @@ func ListenAndServe(cmdPort string){
     // Topic Endpoints
     mux.HandleFunc("/api/topic", Middleware(TopicHandler))
 
+    // Community Endpoints
+    mux.HandleFunc("/api/community", Middleware(CommunityHandler))
+    mux.HandleFunc("/api/community/mods", Middleware(CommunityModsHandler))
+
 	// Login & LogOut
 	mux.HandleFunc("/register", Middleware(RegisterHandler))
     mux.HandleFunc("/login", Middleware(LoginHandler))

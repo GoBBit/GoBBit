@@ -65,7 +65,10 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         }
         json.NewEncoder(w).Encode(topic)
         return
-    }else if r.Method == "PUT"{
+    }
+    
+    // TODO: Check if logged user can edit/delete
+    if r.Method == "PUT"{
         topicUpdate := TopicCreation{}
         err := json.NewDecoder(r.Body).Decode(&topicUpdate)
         if err != nil{

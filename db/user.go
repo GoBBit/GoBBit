@@ -3,13 +3,16 @@ package db
 
 import (
 	"gopkg.in/mgo.v2/bson"
+    "github.com/tv42/slug"
 
+    utils "GoBBit/utils"
 )
 
 
 type User struct{
     Id bson.ObjectId `json:"id"`
-	Username string `json:"username"`
+    Username string `json:"username"`
+	Slug string `json:"slug"`
 	Email string `json:"email"`
 	Password string `json:"password"`
 	Picture string `json:"picture"`
@@ -20,6 +23,7 @@ type User struct{
     Posts_Number int64 `json:"post_number"`
     Topics_Number int64 `json:"topic_number"`
     IsAdmin bool `json:"isadmin"`
+    IsBanned bool `json:"isbanned"`
 }
 
 
@@ -30,6 +34,14 @@ func AddUser(u User) (User, error){
     err := db.C("user").Insert(u)
 
 	return u, err
+}
+
+func UpdateUser(u User) error{
+    db := GetDB()
+
+    err := db.C("user").Update(bson.M{"id": u.Id}, u)
+
+    return err
 }
 
 func UpdateUserLastPost(id string, t int64) error{
@@ -66,11 +78,29 @@ func GetUserById(id string) (User, error){
     return u, err
 }
 
+func GetUserBySlug(slug string) (User, error){
+    db := GetDB()
+    
+    u := User{}
+    err := db.C("user").Find(bson.M{"slug":slug}).One(&u)
+
+    return u, err
+}
+
+func GetUserBySlugSafe(slug string) (User, error){
+    db := GetDB()
+    
+    u := User{}
+    err := db.C("user").Find(bson.M{"slug":slug}).Select(bson.M{"password":0,"email":0}).One(&u)
+
+    return u, err
+}
+
 func GetUserByIdSafe(id string) (User, error){
     db := GetDB()
     
     u := User{}
-    err := db.C("user").Find(bson.M{"id":bson.ObjectIdHex(id)}).Select(bson.M{"id":1, "username": 1, "fid":1, "picture":1}).One(&u)
+    err := db.C("user").Find(bson.M{"id":bson.ObjectIdHex(id)}).Select(bson.M{"password":0,"email":0}).One(&u)
 
     return u, err
 }
@@ -88,7 +118,7 @@ func GetUsersByIdsSafe(ids []bson.ObjectId) ([]User, error){
     db := GetDB()
     
     u := []User{}
-    err := db.C("user").Find(bson.M{"id": bson.M{"$in": ids }}).Select(bson.M{"id":1, "username": 1, "fid":1, "picture":1}).All(&u)
+    err := db.C("user").Find(bson.M{"id": bson.M{"$in": ids }}).Select(bson.M{"password":0,"email":0}).All(&u)
 
     return u, err
 }
@@ -126,7 +156,15 @@ func DeleteFollowedCommunityToUser(id, cid string) error{
 
 
 
+func (u *User) GenerateSlug() (string){
+    u.Slug = slug.Slug(u.Username)
+    return u.Slug
+}
 
+func (u *User) GeneratePasswordHash(pass string) (string){
+    u.Password = utils.CalculateHash(u.Username + pass)
+    return u.Password
+}
 
 
 

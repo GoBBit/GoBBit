@@ -3,13 +3,14 @@ package db
 
 import (
 	"gopkg.in/mgo.v2/bson"
-
+    "github.com/tv42/slug"
 )
 
 
 type Topic struct{
     Id bson.ObjectId `json:"id"`
     Title string `json:"title"`
+    Slug string `json:"slug"`
     Content string `json:"content"` // main post content
 	Uid bson.ObjectId `json:"uid"`
 	Cid bson.ObjectId `json:"cid"` // community ID
@@ -46,4 +47,8 @@ func DeleteTopic(id string) (error){
 }
 
 
+func (t *Topic) GenerateSlug() (string){
+    t.Slug = slug.Slug(t.Title)
+    return t.Slug
+}
 

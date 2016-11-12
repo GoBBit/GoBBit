@@ -3,6 +3,7 @@ package db
 
 import (
 	"gopkg.in/mgo.v2/bson"
+    "github.com/tv42/slug"
 )
 
 
@@ -12,6 +13,7 @@ type Community struct{
 	Slug string `json:"slug"`
 	Picture string `json:"picture"` // Community picture (header picture?)
     Mods []bson.ObjectId `json:"mods"` // Community Moderators
+    Banned_Users []bson.ObjectId `json:"banned_users"` // Community Moderators
 }
 
 
@@ -58,4 +60,8 @@ func DeleteModsToCommunity(id, uid string) error{
     return err
 }
 
+func (c *Community) GenerateSlug() (string){
+    c.Slug = slug.Slug(c.Name)
+    return c.Slug
+}
 

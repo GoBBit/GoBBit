@@ -7,19 +7,14 @@ import (
 	//"io"
 	//"io/ioutil"
 	//"strings"
-	"strconv"
 	"fmt"
 	"net/http"
 	//"net/url"
 	//"html"
 	"encoding/json"
-	"encoding/base64"
-	"crypto/sha512"
-
-	"gopkg.in/mgo.v2/bson"
 
 	"GoBBit/db"
-	//"GoBBit/utils"
+	"GoBBit/utils"
 )
 
 var (
@@ -42,7 +37,10 @@ func ListenAndServe(cmdPort string){
 	// Setup routes
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/me", Middleware(GetMeHandler))
+    // User Endpoints
+    mux.HandleFunc("/api/me", Middleware(GetMeHandler))
+    mux.HandleFunc("/api/user", Middleware(UserHandler))
+	mux.HandleFunc("/api/user/ban", Middleware(UserBanHandler))
 
 	// Login & LogOut
 	mux.HandleFunc("/register", Middleware(RegisterHandler))
@@ -80,21 +78,6 @@ func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) f
 	}
 }
 
-
-func GetMeHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
-	if e != nil{
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, "Error: No User")
-		return
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
-
-	//fmt.Fprintf(w, "Hello, You are looking for %s", r.URL.Query().Get("q"))
-
-}
-
 type RegisterUser struct{
     Username string
     Password string
@@ -117,8 +100,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
 
     u := db.User{}
     u.Username = rUser.Username
-    u.Password = calculateHash(rUser.Username + rUser.Password)
+    u.GeneratePasswordHash(rUser.Password)
     u.Email = rUser.Email
+    u.GenerateSlug()
 
     u, err2 := db.AddUser(u)
     if err2 != nil{
@@ -149,7 +133,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         return
     }
 
-    hash := calculateHash(rUser.Username + rUser.Password)
+    u := db.User{Username:rUser.Username}
+    hash := u.GeneratePasswordHash(rUser.Password)
     u, err2 := db.GetUserByPassword(hash)
     if err2 != nil{
         w.WriteHeader(http.StatusNotFound)
@@ -158,7 +143,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
     }
 
     // Create session
-	sessionHash := GenerateUserSession()
+	sessionHash := utils.GenerateUserSession()
 	uSess := db.UserSession{Uid:u.Id, Id:sessionHash}
     us, err3 := db.AddUserSession(uSess)
     if err3 != nil{
@@ -196,32 +181,5 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, user db.User, e error
     fmt.Fprintf(w, "ok")
 
 }
-
-
-// Hash Functions
-func calculateHash(s string) (string){
-    sha512.New()
-    sBytes := []byte(s)
-    hash := sha512.Sum512(sBytes)
-    b64hash := base64.URLEncoding.EncodeToString(hash[:])
-
-    return b64hash
-}
-
-// Session Function
-func GenerateUserSession()(string){
-	// Generate usersession based on an mongodb objectID and the actual timestamp
-	now := time.Now().Unix() * 1000
-	nowStr := strconv.FormatInt(now, 10)
-	id := bson.NewObjectId()
-	session := nowStr + id.Hex()
-
-	return calculateHash(session)
-}
-
-
-
-
-
 
 

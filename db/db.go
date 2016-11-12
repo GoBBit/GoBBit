@@ -64,6 +64,7 @@ func EnsureIndex(){
     
     db.C("user").EnsureIndex(mgo.Index{Key: []string{"id"}, Unique: true, DropDups: true})
     db.C("user").EnsureIndex(mgo.Index{Key: []string{"email"}, Unique: true, DropDups: true})
+    db.C("user").EnsureIndex(mgo.Index{Key: []string{"slug"}, Unique: true, DropDups: true})
 
     db.C("session").EnsureIndex(mgo.Index{Key: []string{"id"}, Unique: true, DropDups: true})
     db.C("session").EnsureIndex(mgo.Index{Key: []string{"uid"}})

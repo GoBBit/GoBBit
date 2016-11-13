@@ -113,6 +113,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
     u.Email = rUser.Email
     u.GenerateSlug()
 
+    now := time.Now().Unix() * 1000
+    u.Creation_Date = now
+    u.Last_Post_Time = now
+    u.Last_Online_Time = now
+
     u, err2 := db.AddUser(u)
     if err2 != nil{
         fmt.Fprintf(w, "Error: Unable to create user", err2)

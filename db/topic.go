@@ -61,3 +61,7 @@ func (t *Topic) GenerateSlug() (string){
     return t.Slug
 }
 
+func (t *Topic) IsOwner(u User) (bool){
+    return (t.Uid == u.Id)
+}
+

@@ -101,7 +101,16 @@ func (c *Community) GenerateSlug() (string){
     return c.Slug
 }
 
-func (c *Community) IsMod(uid bson.ObjectId) (bool){
-    return (utils.IndexOf(c.Mods, uid) >= 0)
+func (c *Community) IsMod(u User) (bool){
+    return (utils.IndexOf(c.Mods, u.Id) >= 0)
+}
+
+func (c *Community) IsBanned(u User) (bool){
+    return (utils.IndexOf(c.Banned_Users, u.Id) >= 0)
+}
+
+func (c *Community) UserCanPost(u User) (bool){
+    // if not banned in the community nor the forum
+    return !c.IsBanned(u) && !u.IsBanned
 }
 

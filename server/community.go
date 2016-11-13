@@ -78,7 +78,7 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
         fmt.Fprintf(w, "error_community_not_found")
         return
     }
-    if !user.IsAdmin && !community.IsMod(user.Id){
+    if !user.IsAdmin && !community.IsMod(user){
         w.WriteHeader(http.StatusUnauthorized)
         fmt.Fprintf(w, "error_unauthorized")
         return
@@ -145,7 +145,7 @@ func CommunityModsHandler(w http.ResponseWriter, r *http.Request, user db.User, 
     }
 
     // Only admins or mods can add/delete mods
-    if !user.IsAdmin && !community.IsMod(user.Id){
+    if !user.IsAdmin && !community.IsMod(user){
         w.WriteHeader(http.StatusUnauthorized)
         fmt.Fprintf(w, "error_unauthorized")
         return
@@ -197,7 +197,7 @@ func CommunityBannedUsersHandler(w http.ResponseWriter, r *http.Request, user db
     }
 
     // Only admins or mods can add/delete mods
-    if !user.IsAdmin && !community.IsMod(user.Id){
+    if !user.IsAdmin && !community.IsMod(user){
         w.WriteHeader(http.StatusUnauthorized)
         fmt.Fprintf(w, "error_unauthorized")
         return

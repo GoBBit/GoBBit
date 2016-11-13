@@ -45,10 +45,22 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             fmt.Fprintf(w, "invalid_data")
             return
         }
+        // Check if user can post in this community
+        community, err := db.GetCommunityBySlug(topicUpdate.Community)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_community_not_found")
+            return
+        }
+        if !community.UserCanPost(user){
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_unauthorized")
+            return
+        }
 
         topic.Title = topicUpdate.Title
         topic.Content = topicUpdate.Content
-        topic.Community = topicUpdate.Community // TODO: Check if community exists
+        topic.Community = topicUpdate.Community
         topic.Uid = user.Id
         topic.GenerateSlug()
         
@@ -63,11 +75,34 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             fmt.Fprintf(w, "invalid_data")
             return
         }
+
+        // update user stats
+        db.IncrementPostsNumber(user.Id.Hex(), 1)
+        db.IncrementTopicsNumber(user.Id.Hex(), 1)
+
         json.NewEncoder(w).Encode(topic)
         return
     }
     
-    // TODO: Check if logged user can edit/delete
+    topic, err := db.GetTopicById(tid)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_topic_not_found")
+        return
+    }
+    community, err := db.GetCommunityBySlug(topic.Community)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_topic_not_found")
+        return
+    }
+    userCanEdit := (user.IsAdmin || topic.IsOwner(user) || community.IsMod(user))
+    if !userCanEdit{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_unauthorized")
+        return
+    }
+
     if r.Method == "PUT"{
         topicUpdate := TopicCreation{}
         err := json.NewDecoder(r.Body).Decode(&topicUpdate)
@@ -76,17 +111,22 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             fmt.Fprintf(w, "invalid_data")
             return
         }
-        topic, err := db.GetTopicById(tid)
-        if err != nil{
-            w.WriteHeader(http.StatusNotFound)
-            fmt.Fprintf(w, "error_topic_not_found")
-            return
-        }
 
         topic.Title = topicUpdate.Title
         topic.Content = topicUpdate.Content
-        topic.Community = topicUpdate.Community // TODO: Check if community exists
         topic.GenerateSlug()
+
+        if user.IsAdmin{
+            // only admins can change the community of a topic
+            // Check if user can post in this community
+            _, err := db.GetCommunityBySlug(topicUpdate.Community)
+            if err != nil{
+                w.WriteHeader(http.StatusNotFound)
+                fmt.Fprintf(w, "error_community_not_found")
+                return
+            }
+            topic.Community = topicUpdate.Community
+        }
 
         now := time.Now().Unix() * 1000
         topic.Editation_Date = now
@@ -96,6 +136,10 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         return
     }else if r.Method == "DELETE"{
         db.DeleteTopic(tid)
+        // update user stats
+        db.IncrementPostsNumber(user.Id.Hex(), -1)
+        db.IncrementTopicsNumber(user.Id.Hex(), -1)
+
         fmt.Fprintf(w, "ok")
         return
     }else{

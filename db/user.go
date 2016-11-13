@@ -20,8 +20,8 @@ type User struct{
     Last_Post_Time int64 `json:"last_post_time"`
     Last_Online_Time int64 `json:"last_online_time"`
     Creation_Date int64 `json:"creation_date"`
-    Posts_Number int64 `json:"post_number"`
-    Topics_Number int64 `json:"topic_number"`
+    Posts_Number int64 `json:"posts_number"`
+    Topics_Number int64 `json:"topics_number"`
     IsAdmin bool `json:"isadmin"`
     IsBanned bool `json:"isbanned"`
 }
@@ -150,6 +150,22 @@ func DeleteFollowedCommunityToUser(id, cid string) error{
     db := GetDB()
 
     err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$pull": bson.M{"followed_communities": bson.ObjectIdHex(cid)}})
+
+    return err
+}
+
+func IncrementPostsNumber(id string, n int) error{
+    db := GetDB()
+
+    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$inc": bson.M{"posts_number": n}})
+
+    return err
+}
+
+func IncrementTopicsNumber(id string, n int) error{
+    db := GetDB()
+
+    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$inc": bson.M{"topics_number": n}})
 
     return err
 }

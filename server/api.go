@@ -43,6 +43,9 @@ func ListenAndServe(cmdPort string){
     mux.HandleFunc("/api/user/changepassword", Middleware(ChangePasswordHandler))
 	mux.HandleFunc("/api/user/ban", Middleware(UserBanHandler))
 
+    // Post Endpoints
+    mux.HandleFunc("/api/post", Middleware(PostHandler))
+
     // Topic Endpoints
     mux.HandleFunc("/api/topic", Middleware(TopicHandler))
 

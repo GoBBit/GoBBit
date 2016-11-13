@@ -55,6 +55,14 @@ func DeleteTopic(id string) (error){
     return err
 }
 
+func UpdateTopicLastUpdate(id string, t int64) error{
+    db := GetDB()
+
+    err := db.C("topic").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$set": bson.M{"last_update": t}})
+
+    return err
+}
+
 
 func (t *Topic) GenerateSlug() (string){
     t.Slug = slug.Slug(t.Title)

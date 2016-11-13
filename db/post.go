@@ -25,12 +25,21 @@ func AddPost(u Post) (Post, error){
     return u, err
 }
 
-func UpdatePost(id, newContent string) (error){
+func UpdatePost(u Post) (error){
     db := GetDB()
     
-    err := db.C("post").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{ "$set": bson.M{"content": newContent} })
+    err := db.C("post").Update(bson.M{"id": u.Id}, u)
 
     return err
+}
+
+func GetPostById(id string) (Post, error){
+    db := GetDB()
+    
+    u := Post{}
+    err := db.C("post").Find(bson.M{"id":bson.ObjectIdHex(id)}).One(&u)
+
+    return u, err
 }
 
 
@@ -42,4 +51,8 @@ func DeletePost(id string) (error){
     return err
 }
 
+
+func (p *Post) IsOwner(u User) (bool){
+    return (p.Uid == u.Id)
+}
 

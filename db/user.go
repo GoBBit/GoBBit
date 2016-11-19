@@ -16,7 +16,7 @@ type User struct{
 	Email string `json:"email"`
 	Password string `json:"password"`
 	Picture string `json:"picture"`
-    Followed_Communities string `json:"followed_communities"` // slugs
+    Followed_Communities []string `json:"followed_communities"` // slugs
     Last_Post_Time int64 `json:"last_post_time"`
     Last_Online_Time int64 `json:"last_online_time"`
     Creation_Date int64 `json:"creation_date"`
@@ -138,18 +138,18 @@ func GetUserBySession(id string) (User, error){
     return u, err2
 }
 
-func AddFollowedCommunityToUser(id, cid string) error{
+func AddFollowedCommunityToUser(id, cslug string) error{
     db := GetDB()
 
-    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$push": bson.M{"followed_communities": bson.ObjectIdHex(cid)}})
+    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$push": bson.M{"followed_communities": cslug}})
 
     return err
 }
 
-func DeleteFollowedCommunityToUser(id, cid string) error{
+func DeleteFollowedCommunityToUser(id, cslug string) error{
     db := GetDB()
 
-    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$pull": bson.M{"followed_communities": bson.ObjectIdHex(cid)}})
+    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$pull": bson.M{"followed_communities": cslug}})
 
     return err
 }

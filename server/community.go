@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+    "strconv"
 
 	"GoBBit/db"
 )
@@ -217,6 +218,35 @@ func CommunityBannedUsersHandler(w http.ResponseWriter, r *http.Request, user db
     }else if r.Method == "DELETE"{
         db.DeleteBannedUserToCommunity(community.Id.Hex(), banUid)
         fmt.Fprintf(w, "ok")
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+
+
+func CommunityTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+
+    slug := r.URL.Query().Get("c") // community slug
+    start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
+    _, err := db.GetCommunityBySlug(slug)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_community_not_found")
+        return
+    }
+
+    if r.Method == "GET"{
+        topics, err := db.GetTopicsByCommunity([]string{slug}, TopicsPerPage, start)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_topics_not_found")
+            return
+        }
+        json.NewEncoder(w).Encode(topics)
         return
     }else{
         w.WriteHeader(http.StatusInternalServerError)

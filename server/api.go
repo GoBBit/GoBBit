@@ -19,6 +19,7 @@ import (
 
 var (
 	Port = ":3000"
+    TopicsPerPage = 20
 )
 
 func ConfigEnvVars(){
@@ -41,7 +42,9 @@ func ListenAndServe(cmdPort string){
     mux.HandleFunc("/api/me", Middleware(GetMeHandler))
     mux.HandleFunc("/api/user", Middleware(UserHandler))
     mux.HandleFunc("/api/user/changepassword", Middleware(ChangePasswordHandler))
-	mux.HandleFunc("/api/user/ban", Middleware(UserBanHandler))
+    mux.HandleFunc("/api/user/ban", Middleware(UserBanHandler))
+    mux.HandleFunc("/api/user/follow/community", Middleware(UserFollowCommunityHandler))
+	mux.HandleFunc("/api/user/home", Middleware(UserHomeHandler))
 
     // Post Endpoints
     mux.HandleFunc("/api/post", Middleware(PostHandler))
@@ -51,6 +54,7 @@ func ListenAndServe(cmdPort string){
 
     // Community Endpoints
     mux.HandleFunc("/api/community", Middleware(CommunityHandler))
+    mux.HandleFunc("/api/community/topics", Middleware(CommunityTopicsHandler))
     mux.HandleFunc("/api/community/mods", Middleware(CommunityModsHandler))
     mux.HandleFunc("/api/community/ban", Middleware(CommunityBannedUsersHandler))
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+    "strconv"
 
 	"GoBBit/db"
 )
@@ -184,6 +185,11 @@ func UserBanHandler(w http.ResponseWriter, r *http.Request, user db.User, e erro
 	u := db.User{}
 
 	// Only admins!
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
 	if !user.IsAdmin{
 		w.WriteHeader(http.StatusUnauthorized)
         fmt.Fprintf(w, "error_unauthorized")
@@ -216,3 +222,86 @@ func UserBanHandler(w http.ResponseWriter, r *http.Request, user db.User, e erro
 	json.NewEncoder(w).Encode(u)
 
 }
+
+
+func UserHomeHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    // User Home: topics based on the communities user follows
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
+
+    if r.Method == "GET"{
+        topics, err := db.GetTopicsByCommunity(user.Followed_Communities, TopicsPerPage, start)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_topics_not_found")
+            return
+        }
+
+        json.NewEncoder(w).Encode(topics)
+        return
+
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+
+type UserFollowCommunity struct{
+    Community string
+}
+func UserFollowCommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    // User Home: topics based on the communities user follows
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    cslug := r.URL.Query().Get("c") // community slug to delete from followed communities
+
+    if r.Method == "POST"{
+        communityInfo := UserFollowCommunity{}
+        err := json.NewDecoder(r.Body).Decode(&communityInfo)
+        if err != nil{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "invalid_data")
+            return
+        }
+        community, err := db.GetCommunityBySlug(communityInfo.Community)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_community_not_found")
+            return
+        }
+
+        db.DeleteFollowedCommunityToUser(user.Id.Hex(), community.Slug) // delete if already followed
+        err = db.AddFollowedCommunityToUser(user.Id.Hex(), community.Slug)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_community_not_followed %s", err)
+            return
+        }
+
+        json.NewEncoder(w).Encode(community)
+        return
+
+    }else if r.Method == "DELETE"{
+        db.DeleteFollowedCommunityToUser(user.Id.Hex(), cslug)
+
+        fmt.Fprintf(w, "ok")
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+

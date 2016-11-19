@@ -13,7 +13,7 @@ type Topic struct{
     Slug string `json:"slug"`
     Content string `json:"content"` // main post content
 	Uid bson.ObjectId `json:"uid"`
-	Community string `json:"cid"` // community slug
+	Community string `json:"community"` // community slug
 	Creation_Date int64 `json:"creation_date"`
     Editation_Date int64 `json:"editation_date"`
     Last_Update int64 `json:"last_update"`
@@ -61,6 +61,15 @@ func UpdateTopicLastUpdate(id string, t int64) error{
     err := db.C("topic").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$set": bson.M{"last_update": t}})
 
     return err
+}
+
+func GetTopicsByCommunity(cslugs []string, limit, start int) ([]Topic, error){
+    db := GetDB()
+    
+    u := []Topic{}
+    err := db.C("topic").Find(bson.M{"community": bson.M{"$in": cslugs }}).Skip(start).Limit(limit).Sort("-last_update").All(&u)
+
+    return u, err
 }
 
 

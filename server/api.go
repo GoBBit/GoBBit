@@ -29,7 +29,7 @@ func ConfigEnvVars(){
 	}
 }
 
-func ListenAndServe(cmdPort string){
+func ListenAndServe(cmdPort string, staticPath string){
 	ConfigEnvVars()
 	if cmdPort != ""{
 		Port = ":" + cmdPort
@@ -64,7 +64,12 @@ func ListenAndServe(cmdPort string){
     mux.HandleFunc("/login", Middleware(LoginHandler))
 	mux.HandleFunc("/logout", Middleware(LogoutHandler))
 	
-	// mux.Handle("/", http.FileServer(http.Dir("./public_html")))
+    if staticPath != ""{
+        // serve static files (html, js...)
+        // recommended for development, in production you should use nginx or something like that to serve static files
+        mux.Handle("/", http.FileServer(http.Dir(staticPath)))
+    }
+
 	mux.Handle("/debug/vars", http.DefaultServeMux)
 
 	fmt.Printf("listening on *%s\n", Port)

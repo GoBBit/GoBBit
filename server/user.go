@@ -242,7 +242,15 @@ func UserHomeHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
             return
         }
 
-        json.NewEncoder(w).Encode(topics)
+        // now lets add the user creator info to the topic
+        tmp, _ := json.Marshal(topics)
+        myJson := make([]map[string]interface{}, 0)
+        _ = json.Unmarshal(tmp, &myJson)
+        for i, t := range topics{
+            myJson[i]["user"], _ = db.GetUserByIdSafe(t.Uid.Hex())
+        }
+
+        json.NewEncoder(w).Encode(myJson)
         return
 
     }else{

@@ -42,6 +42,15 @@ func GetPostById(id string) (Post, error){
     return u, err
 }
 
+func GetPostsByTopicId(tid string) ([]Post, error){
+    db := GetDB()
+    
+    u := []Post{}
+    err := db.C("post").Find(bson.M{"tid":bson.ObjectIdHex(tid)}).All(&u)
+
+    return u, err
+}
+
 
 func DeletePost(id string) (error){
     db := GetDB()

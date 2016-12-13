@@ -151,6 +151,47 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
 
 }
 
+func TopicPostsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+
+    tid := r.URL.Query().Get("tid") // topic id
+
+    if r.Method == "GET"{
+        posts, err := db.GetPostsByTopicId(tid)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_posts_not_found")
+            return
+        }
+
+        // now lets add the user creator info to the topic
+        tmp, _ := json.Marshal(posts)
+        myJson := make([]map[string]interface{}, 0)
+        _ = json.Unmarshal(tmp, &myJson)
+        for i, p := range posts{
+            myJson[i]["user"], _ = db.GetUserByIdSafe(p.Uid.Hex())
+        }
+
+        json.NewEncoder(w).Encode(myJson)
+        return
+    }
+
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    if r.Method == "POST"{
+    }else if r.Method == "PUT"{
+    }else if r.Method == "DELETE"{
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+
 
 
 

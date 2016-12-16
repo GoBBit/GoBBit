@@ -312,7 +312,8 @@ func IgnoreUserHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
 
     if r.Method == "GET"{
         w.Header().Add("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(user)
+        ignored_users, _ := db.GetUsersByIdsSafe(user.Ignored_Users)
+        json.NewEncoder(w).Encode(ignored_users)
         return
     }else if r.Method == "POST"{
         uid := r.URL.Query().Get("uid") // user id

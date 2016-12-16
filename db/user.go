@@ -24,6 +24,7 @@ type User struct{
     Topics_Number int64 `json:"topics_number"`
     IsAdmin bool `json:"isadmin"`
     IsBanned bool `json:"isbanned"`
+    Ignored_Users []bson.ObjectId `json:"ignored_users"` // users id array
 }
 
 
@@ -150,6 +151,22 @@ func DeleteFollowedCommunityToUser(id, cslug string) error{
     db := GetDB()
 
     err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$pull": bson.M{"followed_communities": cslug}})
+
+    return err
+}
+
+func AddIgnoredUserToUser(id, ignored string) error{
+    db := GetDB()
+
+    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$push": bson.M{"ignored_users": bson.ObjectIdHex(ignored)}})
+
+    return err
+}
+
+func DeleteIgnoredUserToUser(id, ignored string) error{
+    db := GetDB()
+
+    err := db.C("user").Update(bson.M{"id": bson.ObjectIdHex(id)}, bson.M{"$pull": bson.M{"ignored_users": bson.ObjectIdHex(ignored)}})
 
     return err
 }

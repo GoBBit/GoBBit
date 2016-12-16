@@ -240,7 +240,7 @@ func CommunityTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User
     }
 
     if r.Method == "GET"{
-        topics, err := db.GetTopicsByCommunity([]string{slug}, TopicsPerPage, start)
+        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers([]string{slug}, TopicsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_topics_not_found")

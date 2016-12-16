@@ -156,7 +156,7 @@ func TopicPostsHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
     tid := r.URL.Query().Get("tid") // topic id
 
     if r.Method == "GET"{
-        posts, err := db.GetPostsByTopicId(tid)
+        posts, err := db.GetPostsByTopicIdWithoutIgnored(tid, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_posts_not_found")

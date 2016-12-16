@@ -72,6 +72,19 @@ func GetTopicsByCommunity(cslugs []string, limit, start int) ([]Topic, error){
     return u, err
 }
 
+func GetTopicsByCommunityWithoutIgnoredUsers(cslugs []string, limit, start int, ignored []bson.ObjectId) ([]Topic, error){
+    db := GetDB()
+    
+    u := []Topic{}
+    q := bson.M{
+        "community": bson.M{"$in": cslugs }, 
+        "uid": bson.M{"$nin": ignored },
+    }
+    err := db.C("topic").Find(q).Skip(start).Limit(limit).Sort("-last_update").All(&u)
+
+    return u, err
+}
+
 
 func (t *Topic) GenerateSlug() (string){
     t.Slug = slug.Slug(t.Title)

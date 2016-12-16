@@ -235,7 +235,7 @@ func UserHomeHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
     start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
 
     if r.Method == "GET"{
-        topics, err := db.GetTopicsByCommunity(user.Followed_Communities, TopicsPerPage, start)
+        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers(user.Followed_Communities, TopicsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_topics_not_found")
@@ -261,9 +261,6 @@ func UserHomeHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
 
 }
 
-type UserFollowCommunity struct{
-    Community string
-}
 func UserFollowCommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
     // User Home: topics based on the communities user follows
     if e != nil{
@@ -275,14 +272,7 @@ func UserFollowCommunityHandler(w http.ResponseWriter, r *http.Request, user db.
     cslug := r.URL.Query().Get("c") // community slug to delete from followed communities
 
     if r.Method == "POST"{
-        communityInfo := UserFollowCommunity{}
-        err := json.NewDecoder(r.Body).Decode(&communityInfo)
-        if err != nil{
-            w.WriteHeader(http.StatusInternalServerError)
-            fmt.Fprintf(w, "invalid_data")
-            return
-        }
-        community, err := db.GetCommunityBySlug(communityInfo.Community)
+        community, err := db.GetCommunityBySlug(cslug)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_community_not_found")
@@ -293,7 +283,7 @@ func UserFollowCommunityHandler(w http.ResponseWriter, r *http.Request, user db.
         err = db.AddFollowedCommunityToUser(user.Id.Hex(), community.Slug)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
-            fmt.Fprintf(w, "error_community_not_followed %s", err)
+            fmt.Fprintf(w, "error_community_not_followed")
             return
         }
 
@@ -304,6 +294,38 @@ func UserFollowCommunityHandler(w http.ResponseWriter, r *http.Request, user db.
         db.DeleteFollowedCommunityToUser(user.Id.Hex(), cslug)
 
         fmt.Fprintf(w, "ok")
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+
+func IgnoreUserHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    if r.Method == "GET"{
+        w.Header().Add("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(user)
+        return
+    }else if r.Method == "POST"{
+        uid := r.URL.Query().Get("uid") // user id
+        db.DeleteIgnoredUserToUser(user.Id.Hex(), uid) // delete if already exists
+        db.AddIgnoredUserToUser(user.Id.Hex(), uid)
+        
+        json.NewEncoder(w).Encode(user)
+        return
+    }else if r.Method == "DELETE"{
+        uid := r.URL.Query().Get("uid") // user id
+        db.DeleteIgnoredUserToUser(user.Id.Hex(), uid)
+        
+        json.NewEncoder(w).Encode(user)
         return
     }else{
         w.WriteHeader(http.StatusInternalServerError)

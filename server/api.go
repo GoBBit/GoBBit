@@ -45,6 +45,7 @@ func ListenAndServe(cmdPort string, staticPath string){
     mux.HandleFunc("/api/user/ban", Middleware(UserBanHandler))
     mux.HandleFunc("/api/user/follow/community", Middleware(UserFollowCommunityHandler))
 	mux.HandleFunc("/api/user/home", Middleware(UserHomeHandler))
+    mux.HandleFunc("/api/user/ignore", Middleware(IgnoreUserHandler))
 
     // Post Endpoints
     mux.HandleFunc("/api/post", Middleware(PostHandler))

@@ -51,6 +51,19 @@ func GetPostsByTopicId(tid string) ([]Post, error){
     return u, err
 }
 
+func GetPostsByTopicIdWithoutIgnored(tid string, ignored []bson.ObjectId) ([]Post, error){
+    db := GetDB()
+    
+    u := []Post{}
+    q := bson.M{
+        "tid": bson.ObjectIdHex(tid), 
+        "uid": bson.M{"$nin": ignored },
+    }
+    err := db.C("post").Find(q).All(&u)
+
+    return u, err
+}
+
 
 func DeletePost(id string) (error){
     db := GetDB()

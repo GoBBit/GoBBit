@@ -155,7 +155,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
 
     u, err2 := db.AddUser(u)
     if err2 != nil{
-        fmt.Fprintf(w, "Error: Unable to create user", err2)
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Unable to create user")
         return
     }
 
@@ -211,8 +212,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, user db.User, e error
     http.SetCookie(w, &cookie)
     w.Header().Add("Cookie", xsess)
     
-    fmt.Fprintf(w, "ok")
-
+    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 

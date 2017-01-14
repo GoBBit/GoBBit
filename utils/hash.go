@@ -3,7 +3,7 @@ package utils
 import (
 	"encoding/base64"
 	"crypto/sha512"
-	"gopkg.in/mgo.v2/bson"
+	//"gopkg.in/mgo.v2/bson"
 	"time"
 	"strconv"
 )
@@ -19,13 +19,22 @@ func CalculateHash(s string) (string){
 }
 
 // Session Function
-func GenerateUserSession()(string){
-	// Generate usersession based on an mongodb objectID and the actual timestamp
+func GenerateUserSession(uid, site_key string)(string){
+	// Generate usersession based on UID, timestamp and hash of:
+	// 	UID+Timestamp+SITE_KEY
+	// Example: UID:Timestamp:HASH
 	now := time.Now().Unix() * 1000
 	nowStr := strconv.FormatInt(now, 10)
-	id := bson.NewObjectId()
-	session := nowStr + id.Hex()
+	hash := CalculateHash(uid + nowStr + site_key)
+	session := uid + ":" + nowStr + ":" + hash
 
-	return CalculateHash(session)
+	return session
+}
+
+func CheckSession(uid, timestamp, site_key, hash string)(bool){
+	// Check the cookie
+	calculatedHash := CalculateHash(uid + timestamp + site_key)
+
+	return (calculatedHash == hash)
 }
 

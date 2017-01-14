@@ -124,21 +124,6 @@ func GetUsersByIdsSafe(ids []bson.ObjectId) ([]User, error){
     return u, err
 }
 
-func GetUserBySession(id string) (User, error){
-    db := GetDB()
-    
-    u := User{}
-    s := UserSession{}
-    err := db.C("session").Find(bson.M{"id":id}).One(&s)
-    if err != nil{
-        return u, err
-    }
-
-    err2 := db.C("user").Find(bson.M{"id":s.Uid}).One(&u)
-
-    return u, err2
-}
-
 func AddFollowedCommunityToUser(id, cslug string) error{
     db := GetDB()
 

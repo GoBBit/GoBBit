@@ -6,9 +6,10 @@ import (
 	"os" 
 	//"io"
 	//"io/ioutil"
-	//"strings"
+	"strings"
 	"fmt"
 	"net/http"
+    "errors"
 	//"net/url"
 	//"html"
 	"encoding/json"
@@ -20,6 +21,7 @@ import (
 var (
 	Port = ":3000"
     TopicsPerPage = 20
+    SITE_KEY = "Change_Me" // SITE_KEY is the key to generate session and other important stuff, please change it on production
 )
 
 func ConfigEnvVars(){
@@ -27,6 +29,9 @@ func ConfigEnvVars(){
 	if os.Getenv("PORT") != ""{
 		Port = ":" + os.Getenv("PORT")
 	}
+    if os.Getenv("SITE_KEY") != ""{
+        SITE_KEY = os.Getenv("SITE_KEY")
+    }
 }
 
 func ListenAndServe(cmdPort string, staticPath string){
@@ -95,9 +100,20 @@ func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) f
 			return
 		}
 
-		u, err := db.GetUserBySession(cookie.Value)
-
-		next(w, r, u, err)
+        // split by ":" (parse cookie)
+        splittedCookie := strings.Split(cookie.Value, ":")
+        uid := splittedCookie[0]
+        timestamp := splittedCookie[1]
+        hash := splittedCookie[2]
+        validSession := utils.CheckSession(uid, timestamp, SITE_KEY, hash)
+        if validSession{
+            u, err := db.GetUserById(uid)
+            next(w, r, u, err)
+            return
+        }else{
+            next(w, r, db.User{}, errors.New("Invalid Cookie"))
+            return
+        }
 	}
 }
 
@@ -171,17 +187,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
     }
 
     // Create session
-	sessionHash := utils.GenerateUserSession()
-	uSess := db.UserSession{Uid:u.Id, Id:sessionHash}
-    us, err3 := db.AddUserSession(uSess)
-    if err3 != nil{
-        w.WriteHeader(http.StatusInternalServerError)
-        fmt.Fprintf(w, "Error: Unable to create session [%s]", err3)
-        return
-    }
+	sessionHash := utils.GenerateUserSession(u.Id.Hex(), SITE_KEY)
 
-    xsess := "xsession=" + us.Id
-    cookie := http.Cookie{Name:"xsession",Value:us.Id, Path:"/",Expires:time.Now().AddDate(1,0,0)}
+    xsess := "xsession=" + sessionHash
+    cookie := http.Cookie{Name:"xsession",Value:sessionHash, Path:"/",Expires:time.Now().AddDate(1,0,0)}
 
     http.SetCookie(w, &cookie)
     w.Header().Add("Cookie", xsess)
@@ -190,15 +199,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
-    
-    actCookie, err := r.Cookie("xsession")
-    if err != nil{
-        w.WriteHeader(http.StatusNotFound)
-        fmt.Fprintf(w, "Error: No cookie found")
-        return
-    }
-
-    db.DeleteUserSession(actCookie.Value)
 
     xsess := "xsession=;"
     cookie := http.Cookie{Name:"xsession",Value:"", Expires:time.Now().AddDate(0,0,-1)}

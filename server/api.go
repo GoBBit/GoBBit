@@ -105,10 +105,15 @@ func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) f
         uid := splittedCookie[0]
         timestamp := splittedCookie[1]
         hash := splittedCookie[2]
-        validSession := utils.CheckSession(uid, timestamp, SITE_KEY, hash)
+        
+        u, err := db.GetUserById(uid)
+        if err != nil{
+            next(w, r, db.User{}, err)
+            return
+        }
+        validSession := utils.CheckSession(uid, u.Password, timestamp, SITE_KEY, hash)
         if validSession{
-            u, err := db.GetUserById(uid)
-            next(w, r, u, err)
+            next(w, r, u, nil)
             return
         }else{
             next(w, r, db.User{}, errors.New("Invalid Cookie"))
@@ -187,7 +192,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
     }
 
     // Create session
-	sessionHash := utils.GenerateUserSession(u.Id.Hex(), SITE_KEY)
+	sessionHash := utils.GenerateUserSession(u.Id.Hex(), u.Password, SITE_KEY)
 
     xsess := "xsession=" + sessionHash
     cookie := http.Cookie{Name:"xsession",Value:sessionHash, Path:"/",Expires:time.Now().AddDate(1,0,0)}

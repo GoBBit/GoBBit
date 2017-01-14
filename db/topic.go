@@ -17,6 +17,7 @@ type Topic struct{
 	Creation_Date int64 `json:"creation_date"`
     Editation_Date int64 `json:"editation_date"`
     Last_Update int64 `json:"last_update"`
+    Posts_number int64 `json:"posts_number"` // number of posts(messages) on the topic
 }
 
 
@@ -85,6 +86,13 @@ func GetTopicsByCommunityWithoutIgnoredUsers(cslugs []string, limit, start int, 
     return u, err
 }
 
+func (t *Topic) IncrementPostsNumber(n int) error{
+    db := GetDB()
+
+    err := db.C("topic").Update(bson.M{"id": t.Id}, bson.M{"$inc": bson.M{"posts_number": n}})
+
+    return err
+}
 
 func (t *Topic) GenerateSlug() (string){
     t.Slug = slug.Slug(t.Title)

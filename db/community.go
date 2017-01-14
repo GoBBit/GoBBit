@@ -18,6 +18,8 @@ type Community struct{
     Mods []bson.ObjectId `json:"mods"` // Community Moderators
     Banned_Users []bson.ObjectId `json:"banned_users"` // Community Moderators
     Creation_Date int64 `json:"creation_date"`
+    Posts_number int64 `json:"posts_number"` // number of total posts(messages) on the community
+    Topics_number int64 `json:"topics_number"` // number of total topics on the community
 }
 
 
@@ -112,5 +114,21 @@ func (c *Community) IsBanned(u User) (bool){
 func (c *Community) UserCanPost(u User) (bool){
     // if not banned in the community nor the forum
     return !c.IsBanned(u) && !u.IsBanned
+}
+
+func (c *Community) IncrementPostsNumber(n int) error{
+    db := GetDB()
+
+    err := db.C("community").Update(bson.M{"id": c.Id}, bson.M{"$inc": bson.M{"posts_number": n}})
+
+    return err
+}
+
+func (c *Community) IncrementTopicsNumber(n int) error{
+    db := GetDB()
+
+    err := db.C("community").Update(bson.M{"id": c.Id}, bson.M{"$inc": bson.M{"topics_number": n}})
+
+    return err
 }
 

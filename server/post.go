@@ -83,6 +83,12 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
         db.IncrementPostsNumber(user.Id.Hex(), 1)
         db.UpdateUserLastPost(user.Id.Hex(), now)
 
+        // update topic stats
+        topic.IncrementPostsNumber(1)
+
+        // update community stats
+        community.IncrementPostsNumber(1)
+
         json.NewEncoder(w).Encode(post)
         return
     }
@@ -132,6 +138,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
         db.DeletePost(pid)
         // update user stats
         db.IncrementPostsNumber(user.Id.Hex(), -1)
+        topic.IncrementPostsNumber(-1)
+        community.IncrementPostsNumber(-1)
 
         fmt.Fprintf(w, "ok")
         return

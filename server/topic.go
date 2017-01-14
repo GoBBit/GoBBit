@@ -81,6 +81,9 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         db.IncrementTopicsNumber(user.Id.Hex(), 1)
         db.UpdateUserLastPost(user.Id.Hex(), now)
 
+        // update community stats
+        community.IncrementTopicsNumber(1)
+
         json.NewEncoder(w).Encode(topic)
         return
     }
@@ -140,6 +143,7 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         // update user stats
         db.IncrementPostsNumber(user.Id.Hex(), -1)
         db.IncrementTopicsNumber(user.Id.Hex(), -1)
+        community.IncrementTopicsNumber(-1)
 
         fmt.Fprintf(w, "ok")
         return

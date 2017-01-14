@@ -98,6 +98,15 @@ func DeleteBannedUserToCommunity(id, uid string) error{
     return err
 }
 
+func GetAllCommunities() ([]Community, error){
+    db := GetDB()
+    
+    u := []Community{}
+    err := db.C("community").Find(bson.M{}).All(&u)
+
+    return u, err
+}
+
 func (c *Community) GenerateSlug() (string){
     c.Slug = slug.Slug(c.Name)
     return c.Slug

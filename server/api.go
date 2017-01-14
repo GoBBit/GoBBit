@@ -64,6 +64,7 @@ func ListenAndServe(cmdPort string, staticPath string){
     mux.HandleFunc("/api/community/topics", Middleware(CommunityTopicsHandler))
     mux.HandleFunc("/api/community/mods", Middleware(CommunityModsHandler))
     mux.HandleFunc("/api/community/ban", Middleware(CommunityBannedUsersHandler))
+    mux.HandleFunc("/api/communities", Middleware(CommunitiesHandler))
 
 	// Login & LogOut
 	mux.HandleFunc("/register", Middleware(RegisterHandler))
@@ -102,6 +103,11 @@ func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) f
 
         // split by ":" (parse cookie)
         splittedCookie := strings.Split(cookie.Value, ":")
+        if len(splittedCookie) < 3{
+            next(w, r, db.User{}, errors.New("Invalid Cookie"))
+            return
+        }
+
         uid := splittedCookie[0]
         timestamp := splittedCookie[1]
         hash := splittedCookie[2]

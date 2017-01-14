@@ -265,7 +265,20 @@ func CommunityTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User
 
 }
 
+func CommunitiesHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
+    communities := []db.Community{}
+
+    if r.Method == "GET"{
+        communities, _ = db.GetAllCommunities()
+        json.NewEncoder(w).Encode(communities)
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+}
 
 
 

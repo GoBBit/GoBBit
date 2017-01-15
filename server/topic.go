@@ -27,7 +27,13 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             return
         }
 
-    	json.NewEncoder(w).Encode(topic)
+        // now lets add the user creator info to the topic
+        tmp, _ := json.Marshal(topic)
+        myJson := make(map[string]interface{}, 0)
+        _ = json.Unmarshal(tmp, &myJson)
+        myJson["user"], _ = db.GetUserByIdSafe(topic.Uid.Hex())
+
+        json.NewEncoder(w).Encode(myJson)
         return
     }
 

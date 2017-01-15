@@ -42,16 +42,16 @@ func GetPostById(id string) (Post, error){
     return u, err
 }
 
-func GetPostsByTopicId(tid string) ([]Post, error){
+func GetPostsByTopicId(tid string, limit, start int) ([]Post, error){
     db := GetDB()
     
     u := []Post{}
-    err := db.C("post").Find(bson.M{"tid":bson.ObjectIdHex(tid)}).All(&u)
+    err := db.C("post").Find(bson.M{"tid":bson.ObjectIdHex(tid)}).Skip(start).Limit(limit).All(&u)
 
     return u, err
 }
 
-func GetPostsByTopicIdWithoutIgnored(tid string, ignored []bson.ObjectId) ([]Post, error){
+func GetPostsByTopicIdWithoutIgnored(tid string, limit, start int, ignored []bson.ObjectId) ([]Post, error){
     db := GetDB()
     
     u := []Post{}
@@ -59,7 +59,7 @@ func GetPostsByTopicIdWithoutIgnored(tid string, ignored []bson.ObjectId) ([]Pos
         "tid": bson.ObjectIdHex(tid), 
         "uid": bson.M{"$nin": ignored },
     }
-    err := db.C("post").Find(q).All(&u)
+    err := db.C("post").Find(q).Skip(start).Limit(limit).All(&u)
 
     return u, err
 }

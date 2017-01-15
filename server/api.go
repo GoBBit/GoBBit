@@ -21,6 +21,7 @@ import (
 var (
 	Port = ":3000"
     TopicsPerPage = 20
+    PostsPerPage = 20
     SITE_KEY = "Change_Me" // SITE_KEY is the key to generate session and other important stuff, please change it on production
 )
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+    "strconv"
 
 	"GoBBit/db"
 )
@@ -164,9 +165,10 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
 func TopicPostsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
     tid := r.URL.Query().Get("tid") // topic id
+    start, _ := strconv.Atoi(r.URL.Query().Get("start"))
 
     if r.Method == "GET"{
-        posts, err := db.GetPostsByTopicIdWithoutIgnored(tid, user.Ignored_Users)
+        posts, err := db.GetPostsByTopicIdWithoutIgnored(tid, PostsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_posts_not_found")

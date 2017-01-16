@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"encoding/json"
     "strconv"
+    "html"
 
 	"GoBBit/db"
 )
@@ -65,8 +66,20 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             return
         }
 
-        topic.Title = topicUpdate.Title
-        topic.Content = topicUpdate.Content
+        // Security checks
+        if topicUpdate.Title == "" || topicUpdate.Title == " " || len(topicUpdate.Title) > MaxTitleLength || len(topicUpdate.Title) < MinTitleLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_title")
+            return
+        }
+        if topicUpdate.Content == "" || topicUpdate.Content == " " || len(topicUpdate.Content) > MaxContentLength || len(topicUpdate.Content) < MinContentLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_content")
+            return
+        }
+
+        topic.Title = html.EscapeString(topicUpdate.Title)
+        topic.Content = html.EscapeString(topicUpdate.Content)
         topic.Community = topicUpdate.Community
         topic.Uid = user.Id
         topic.GenerateSlug()
@@ -123,8 +136,20 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             return
         }
 
-        topic.Title = topicUpdate.Title
-        topic.Content = topicUpdate.Content
+        // Security checks
+        if topicUpdate.Title == "" || topicUpdate.Title == " " || len(topicUpdate.Title) > MaxTitleLength || len(topicUpdate.Title) < MinTitleLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_title")
+            return
+        }
+        if topicUpdate.Content == "" || topicUpdate.Content == " " || len(topicUpdate.Content) > MaxContentLength || len(topicUpdate.Content) < MinContentLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_content")
+            return
+        }
+
+        topic.Title = html.EscapeString(topicUpdate.Title)
+        topic.Content = html.EscapeString(topicUpdate.Content)
         topic.GenerateSlug()
 
         if user.IsAdmin{

@@ -22,6 +22,13 @@ var (
 	Port = ":3000"
     TopicsPerPage = 20
     PostsPerPage = 20
+    MaxTitleLength = 140
+    MinTitleLength = 5
+    MaxContentLength = 1000
+    MinContentLength = 5
+    MaxNameLength = 50
+    MaxDescriptionLength = 140
+    MinDescriptionLength = 5
     SITE_KEY = "Change_Me" // SITE_KEY is the key to generate session and other important stuff, please change it on production
 )
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+    "html"
 
 	"GoBBit/db"
 )
@@ -63,7 +64,14 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
             return
         }
 
-        post.Content = postUpdate.Content
+        // Security checks
+        if postUpdate.Content == "" || postUpdate.Content == " " || len(postUpdate.Content) > MaxContentLength || len(postUpdate.Content) < MinContentLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_content")
+            return
+        }
+
+        post.Content = html.EscapeString(postUpdate.Content)
         post.Tid = topic.Id
         post.Uid = user.Id
         
@@ -127,7 +135,14 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
             return
         }
 
-        post.Content = postUpdate.Content
+        // Security checks
+        if postUpdate.Content == "" || postUpdate.Content == " " || len(postUpdate.Content) > MaxContentLength || len(postUpdate.Content) < MinContentLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_content")
+            return
+        }
+
+        post.Content = html.EscapeString(postUpdate.Content)
         now := time.Now().Unix() * 1000
         post.Editation_Date = now
 

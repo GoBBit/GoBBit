@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"encoding/json"
     "strconv"
+    "html"
 
 	"GoBBit/db"
 )
@@ -54,9 +55,21 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
             return
         }
 
-        community.Name = communityUpdate.Name
-        community.Description = communityUpdate.Description
-        community.Picture = communityUpdate.Picture
+        // Security checks
+        if communityUpdate.Name == "" || communityUpdate.Name == " " || len(communityUpdate.Name) > MaxNameLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_name")
+            return
+        }
+        if communityUpdate.Description == "" || communityUpdate.Description == " " || len(communityUpdate.Description) > MaxDescriptionLength || len(communityUpdate.Description) < MinDescriptionLength{
+            w.WriteHeader(http.StatusInternalServerError)
+            fmt.Fprintf(w, "error_invalid_content")
+            return
+        }
+
+        community.Name = html.EscapeString(communityUpdate.Name)
+        community.Description = html.EscapeString(communityUpdate.Description)
+        community.Picture = html.EscapeString(communityUpdate.Picture)
         
         now := time.Now().Unix() * 1000
         community.Creation_Date = now

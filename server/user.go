@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"encoding/json"
     "strconv"
+    "html"
 
 	"GoBBit/db"
 )
@@ -41,11 +42,11 @@ func GetMeHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         }
 
         if userUpdate.Email != ""{
-            user.Email = userUpdate.Email
+            user.Email = html.EscapeString(userUpdate.Email)
         }
 
         if userUpdate.Picture != ""{
-            user.Picture = userUpdate.Picture
+            user.Picture = html.EscapeString(userUpdate.Picture)
         }
 
         db.UpdateUser(user)

@@ -11,7 +11,7 @@ import (
 	"net/http"
     "errors"
 	//"net/url"
-	//"html"
+	"html"
 	"encoding/json"
 
 	"GoBBit/db"
@@ -158,7 +158,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
     }
 
     u := db.User{}
-    u.Username = rUser.Username
+    u.Username = html.EscapeString(rUser.Username)
     u.GeneratePasswordHash(rUser.Password)
     u.Email = rUser.Email
     u.GenerateSlug()
@@ -198,7 +198,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         return
     }
 
-    u := db.User{Username:rUser.Username}
+    u := db.User{Username: html.EscapeString(rUser.Username)}
     hash := u.GeneratePasswordHash(rUser.Password)
     u, err2 := db.GetUserByPassword(hash)
     if err2 != nil{

@@ -8,6 +8,8 @@ import (
     "strconv"
     "html"
 
+    "github.com/tv42/slug"
+
 	"GoBBit/db"
 )
 
@@ -18,11 +20,11 @@ type CommunityCreation struct{
 }
 func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
-    slug := r.URL.Query().Get("c") // community slug
+    communitySlug := r.URL.Query().Get("c") // community slug
     community := db.Community{}
 
     if r.Method == "GET"{
-        community, err := db.GetCommunityBySlug(slug)
+        community, err := db.GetCommunityBySlug(communitySlug)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_community_not_found")
@@ -86,7 +88,7 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
     }
 
     // Only admins or mods can update/delete communities 
-    community, err := db.GetCommunityBySlug(slug)
+    community, err := db.GetCommunityBySlug(communitySlug)
     if err != nil{
         w.WriteHeader(http.StatusNotFound)
         fmt.Fprintf(w, "error_community_not_found")
@@ -106,7 +108,7 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
             fmt.Fprintf(w, "invalid_data")
             return
         }
-        community, err = db.GetCommunityBySlug(slug)
+        community, err = db.GetCommunityBySlug(communitySlug)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_community_not_found")
@@ -125,7 +127,7 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
         json.NewEncoder(w).Encode(community)
         return
     }else if r.Method == "DELETE"{
-        db.DeleteCommunityBySlug(slug)
+        db.DeleteCommunityBySlug(communitySlug)
         fmt.Fprintf(w, "ok")
         return
     }else{
@@ -138,8 +140,8 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
 
 func CommunityModsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
-    slug := r.URL.Query().Get("c") // community slug
-    community, err := db.GetCommunityBySlug(slug)
+    communitySlug := r.URL.Query().Get("c") // community slug
+    community, err := db.GetCommunityBySlug(communitySlug)
     if err != nil{
         w.WriteHeader(http.StatusNotFound)
         fmt.Fprintf(w, "error_community_not_found")
@@ -165,7 +167,15 @@ func CommunityModsHandler(w http.ResponseWriter, r *http.Request, user db.User, 
         return
     }
 
-    modUid := r.URL.Query().Get("uid") // mod uid to add or remove
+    modUserSlug := slug.Slug(r.URL.Query().Get("u")) // user slug to add or remove
+    u, err := db.GetUserBySlug(modUserSlug)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_user_not_found")
+        return
+    }
+    modUid := u.Id.Hex()
+
     if r.Method == "POST"{
         db.DeleteModsToCommunity(community.Id.Hex(), modUid) // delete mod if already added
         err := db.AddModsToCommunity(community.Id.Hex(), modUid)
@@ -190,8 +200,8 @@ func CommunityModsHandler(w http.ResponseWriter, r *http.Request, user db.User, 
 
 func CommunityBannedUsersHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
-    slug := r.URL.Query().Get("c") // community slug
-    community, err := db.GetCommunityBySlug(slug)
+    communitySlug := r.URL.Query().Get("c") // community slug
+    community, err := db.GetCommunityBySlug(communitySlug)
     if err != nil{
         w.WriteHeader(http.StatusNotFound)
         fmt.Fprintf(w, "error_community_not_found")
@@ -217,7 +227,15 @@ func CommunityBannedUsersHandler(w http.ResponseWriter, r *http.Request, user db
         return
     }
 
-    banUid := r.URL.Query().Get("uid") // user uid to add or remove
+    banUserSlug := slug.Slug(r.URL.Query().Get("u")) // user slug to add or remove
+    u, err := db.GetUserBySlug(banUserSlug)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_user_not_found")
+        return
+    }
+    banUid := u.Id.Hex()
+
     if r.Method == "POST"{
         db.DeleteBannedUserToCommunity(community.Id.Hex(), banUid) // delete if already added
         err := db.AddBannedUserToCommunity(community.Id.Hex(), banUid)
@@ -243,9 +261,9 @@ func CommunityBannedUsersHandler(w http.ResponseWriter, r *http.Request, user db
 
 func CommunityTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
-    slug := r.URL.Query().Get("c") // community slug
+    communitySlug := r.URL.Query().Get("c") // community slug
     start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
-    _, err := db.GetCommunityBySlug(slug)
+    _, err := db.GetCommunityBySlug(communitySlug)
     if err != nil{
         w.WriteHeader(http.StatusNotFound)
         fmt.Fprintf(w, "error_community_not_found")
@@ -253,7 +271,7 @@ func CommunityTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User
     }
 
     if r.Method == "GET"{
-        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers([]string{slug}, TopicsPerPage, start, user.Ignored_Users)
+        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers([]string{communitySlug}, TopicsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_topics_not_found")

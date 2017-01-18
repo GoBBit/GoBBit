@@ -159,9 +159,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
 
     u := db.User{}
     u.Username = html.EscapeString(rUser.Username)
+    u.GenerateSlug()
     u.GeneratePasswordHash(rUser.Password)
     u.Email = rUser.Email
-    u.GenerateSlug()
 
     now := time.Now().Unix() * 1000
     u.Creation_Date = now
@@ -199,6 +199,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
     }
 
     u := db.User{Username: html.EscapeString(rUser.Username)}
+    u.GenerateSlug()
     hash := u.GeneratePasswordHash(rUser.Password)
     u, err2 := db.GetUserByPassword(hash)
     if err2 != nil{

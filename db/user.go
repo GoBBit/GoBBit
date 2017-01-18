@@ -180,17 +180,17 @@ func (u *User) GenerateSlug() (string){
 }
 
 func (u *User) GeneratePasswordHash(pass string) (string){
-    u.Password = utils.CalculateHash(u.Username + pass)
+    u.Password = utils.CalculateHash(u.Slug + pass)
     return u.Password
 }
 
 func (u *User) ChangePassword(oldpass, newpass string) (bool){
-    oldCheck := utils.CalculateHash(u.Username + oldpass)
+    oldCheck := utils.CalculateHash(u.Slug + oldpass)
     if u.Password != oldCheck{
         return false
     }
 
-    u.Password = utils.CalculateHash(u.Username + newpass)
+    u.Password = utils.CalculateHash(u.Slug + newpass)
     return true
 }
 

@@ -86,6 +86,15 @@ func GetTopicsByCommunityWithoutIgnoredUsers(cslugs []string, limit, start int, 
     return u, err
 }
 
+func GetTopicsByUser(uid string, limit, start int) ([]Topic, error){
+    db := GetDB()
+    
+    u := []Topic{}
+    err := db.C("topic").Find(bson.M{"uid": bson.ObjectIdHex(uid)}).Skip(start).Limit(limit).Sort("-last_update").All(&u)
+
+    return u, err
+}
+
 func (t *Topic) IncrementPostsNumber(n int) error{
     db := GetDB()
 

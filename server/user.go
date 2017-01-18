@@ -336,3 +336,29 @@ func IgnoreUserHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
 
 }
 
+
+func UserTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+
+    slug := r.URL.Query().Get("u") // user slug
+    start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
+
+    if r.Method == "GET"{
+        u, err := db.GetUserBySlugSafe(slug)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_user_not_found")
+            return
+        }
+
+        topics, err := db.GetTopicsByUser(u.Id.Hex(), TopicsPerPage, start)
+
+        json.NewEncoder(w).Encode(topics)
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+

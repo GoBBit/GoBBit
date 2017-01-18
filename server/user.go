@@ -181,8 +181,7 @@ type UserBan struct{
 }
 func UserBanHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 	// Ban/Unban user from forum
-	slug := r.URL.Query().Get("u") // user slug
-	u := db.User{}
+	uid := r.URL.Query().Get("uid") // user slug
 
 	// Only admins!
     if e != nil{
@@ -196,30 +195,30 @@ func UserBanHandler(w http.ResponseWriter, r *http.Request, user db.User, e erro
         return
 	}
 
-	if r.Method == "PUT"{
-		userUpdate := UserBan{}
-		err := json.NewDecoder(r.Body).Decode(&userUpdate)
-        if err != nil{
-            w.WriteHeader(http.StatusInternalServerError)
-            fmt.Fprintf(w, "invalid_data")
-            return
-        }
-        u, err = db.GetUserBySlug(slug)
-        if err != nil{
-            w.WriteHeader(http.StatusNotFound)
-            fmt.Fprintf(w, "error_user_not_found")
-            return
-        }
+    u, err := db.GetUserById(uid)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "error_user_not_found")
+        return
+    }
 
-        u.IsBanned = userUpdate.Ban
+    if r.Method == "POST"{
+        u.IsBanned = true
         db.UpdateUser(u)
-	}else{
-		w.WriteHeader(http.StatusInternalServerError)
+        
+        json.NewEncoder(w).Encode(user)
+        return
+    }else if r.Method == "DELETE"{
+        u.IsBanned = false
+        db.UpdateUser(u)
+        
+        json.NewEncoder(w).Encode(user)
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
         fmt.Fprintf(w, "Error: Wrong Method")
         return
-	}
-
-	json.NewEncoder(w).Encode(u)
+    }
 
 }
 

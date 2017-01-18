@@ -105,14 +105,21 @@ func UserHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
 
 	slug := r.URL.Query().Get("u") // user slug
 	u := db.User{}
+    var err error
 
 	if r.Method == "GET"{
-		u, err := db.GetUserBySlugSafe(slug)
-		if err != nil{
+        if user.IsAdmin || user.Slug == slug{
+            u, err = db.GetUserBySlug(slug)
+        }else{
+    		u, err = db.GetUserBySlugSafe(slug)
+        }
+
+        if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_user_not_found")
             return
         }
+
         json.NewEncoder(w).Encode(u)
         return
 	}

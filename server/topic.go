@@ -231,7 +231,37 @@ func TopicPostsHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
 
 
 
+func TopicsRecentHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    // Recent topics
+    
+    start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
 
+    if r.Method == "GET"{
+        topics, err := db.GetTopicsListWithoutIgnoredUsers(TopicsPerPage, start, user.Ignored_Users)
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_topics_not_found")
+            return
+        }
+
+        // now lets add the user creator info to the topic
+        tmp, _ := json.Marshal(topics)
+        myJson := make([]map[string]interface{}, 0)
+        _ = json.Unmarshal(tmp, &myJson)
+        for i, t := range topics{
+            myJson[i]["user"], _ = db.GetUserByIdSafe(t.Uid.Hex())
+        }
+
+        json.NewEncoder(w).Encode(myJson)
+        return
+
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
 
 
 

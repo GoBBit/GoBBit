@@ -86,6 +86,18 @@ func GetTopicsByCommunityWithoutIgnoredUsers(cslugs []string, limit, start int, 
     return u, err
 }
 
+func GetTopicsListWithoutIgnoredUsers(limit, start int, ignored []bson.ObjectId) ([]Topic, error){
+    db := GetDB()
+    
+    u := []Topic{}
+    q := bson.M{
+        "uid": bson.M{"$nin": ignored },
+    }
+    err := db.C("topic").Find(q).Skip(start).Limit(limit).Sort("-last_update").All(&u)
+
+    return u, err
+}
+
 func GetTopicsByUser(uid string, limit, start int) ([]Topic, error){
     db := GetDB()
     

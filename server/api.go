@@ -67,6 +67,7 @@ func ListenAndServe(cmdPort string, staticPath string){
     // Topic Endpoints
     mux.HandleFunc("/api/topic", Middleware(TopicHandler))
     mux.HandleFunc("/api/topic/posts", Middleware(TopicPostsHandler))
+    mux.HandleFunc("/api/topics/recent", Middleware(TopicsRecentHandler))
 
     // Community Endpoints
     mux.HandleFunc("/api/community", Middleware(CommunityHandler))
@@ -230,5 +231,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, user db.User, e error
     
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
+
 
 

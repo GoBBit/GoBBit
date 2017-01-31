@@ -109,10 +109,12 @@ func UserHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
     var err error
 
 	if r.Method == "GET"{
+        u.Username = slug
+        u.GenerateSlug()
         if user.IsAdmin || user.Slug == slug{
-            u, err = db.GetUserBySlug(slug)
+            u, err = db.GetUserBySlug(u.Slug)
         }else{
-    		u, err = db.GetUserBySlugSafe(slug)
+    		u, err = db.GetUserBySlugSafe(u.Slug)
         }
 
         if err != nil{
@@ -348,9 +350,11 @@ func UserTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
 
     slug := r.URL.Query().Get("u") // user slug
     start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
+    u := db.User{Username: slug}
+    u.GenerateSlug()
 
     if r.Method == "GET"{
-        u, err := db.GetUserBySlugSafe(slug)
+        u, err := db.GetUserBySlugSafe(u.Slug)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_user_not_found")

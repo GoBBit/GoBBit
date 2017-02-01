@@ -96,6 +96,9 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
             return
         }
 
+        // create notifications
+        go db.CreateMentionsNotificationsFromPost(topic.Id.Hex(), user.Slug, topic.Content)
+
         // update user stats
         db.IncrementPostsNumber(user.Id.Hex(), 1)
         db.IncrementTopicsNumber(user.Id.Hex(), 1)

@@ -87,6 +87,9 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
         }
         db.UpdateTopicLastUpdate(topic.Id.Hex(), now)
 
+        // create notifications
+        go db.CreateMentionsNotificationsFromPost(topic.Id.Hex(), user.Slug, post.Content)
+
         // update user stats
         db.IncrementPostsNumber(user.Id.Hex(), 1)
         db.UpdateUserLastPost(user.Id.Hex(), now)

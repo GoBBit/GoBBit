@@ -24,8 +24,9 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request, user db.User, e
             fmt.Fprintf(w, "error_notification_not_found")
             return
         }
+        notifJson := notification.GetAllEntities()
 
-    	json.NewEncoder(w).Encode(notification)
+    	json.NewEncoder(w).Encode(notifJson)
         return
     }else{
         w.WriteHeader(http.StatusInternalServerError)
@@ -35,10 +36,23 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request, user db.User, e
 }
 
 func NotificationsHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
     // list notifications
     if r.Method == "GET"{
         notifications, _ := db.GetNotificationsByUser(user.Id.Hex())
-        json.NewEncoder(w).Encode(notifications)
+
+        // now lets add entities
+        myJson := make([]map[string]interface{}, 0)
+        for _, n := range notifications{
+            myJson = append(myJson, n.GetAllEntities())
+        }
+
+        json.NewEncoder(w).Encode(myJson)
         return
     }else{
         w.WriteHeader(http.StatusInternalServerError)

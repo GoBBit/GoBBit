@@ -25,7 +25,23 @@ func GetMeHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
 
     if r.Method == "GET"{
     	w.Header().Add("Content-Type", "application/json")
-    	json.NewEncoder(w).Encode(user)
+        // put the cookie as CSRF
+        cookie, err := r.Cookie("xsession")
+        if err != nil{
+            json.NewEncoder(w).Encode(user)
+            return
+        }
+
+        userJson := make(map[string]interface{}, 0)
+        tmp, _ := json.Marshal(user)
+        err = json.Unmarshal(tmp, &userJson)
+        if err != nil{
+            json.NewEncoder(w).Encode(user)
+            return
+        }
+
+        userJson["csrf"] = cookie.Value
+        json.NewEncoder(w).Encode(userJson)
         return
     }else if r.Method == "PUT"{
         userUpdate := UserUpdate{}

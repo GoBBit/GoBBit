@@ -3,9 +3,10 @@ package server
 import (
 	"log"
 	"time"
-	"os" 
-	//"io"
-	//"io/ioutil"
+	"os"
+    "bytes"
+	"io"
+	"io/ioutil"
 	"strings"
 	"fmt"
 	"net/http"
@@ -102,6 +103,9 @@ func ListenAndServe(cmdPort string, staticPath string){
 }
 
 
+type CSRFRequest struct{
+    CSRF string
+}
 func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -110,6 +114,31 @@ func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) f
 			next(w, r, db.User{}, err)
 			return
 		}
+
+
+        if r.Method == "POST"{
+            // Let's check CSRF token
+            // temporary buffer
+            b := bytes.NewBuffer(make([]byte, 0))
+            // TeeReader returns a Reader that writes to b what it reads from r.Body.
+            reader := io.TeeReader(r.Body, b)
+            csrf := CSRFRequest{}
+            err := json.NewDecoder(reader).Decode(&csrf)
+            if err != nil{
+                w.WriteHeader(http.StatusInternalServerError)
+                fmt.Fprintf(w, "error_parsing_csrf")
+                return
+            }
+            if csrf.CSRF != cookie.Value{
+                w.WriteHeader(http.StatusUnauthorized)
+                fmt.Fprintf(w, "error_bad_csrf")
+                return
+            }
+            // we are done with body
+            defer r.Body.Close()
+            r.Body = ioutil.NopCloser(b)
+        }
+
 
         // split by ":" (parse cookie)
         splittedCookie := strings.Split(cookie.Value, ":")

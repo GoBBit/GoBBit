@@ -19,6 +19,7 @@ type Notification struct{
 	Params []string `json:"params"` // params for the notification, example: in a mention [topicid, user who mention, mentioned user]
     Uid bson.ObjectId `json:"uid"` // sent to User ID
     Read bool `json:"read"`
+    Creation_Date bool `json:"creation_date"`
 }
 
 
@@ -31,11 +32,20 @@ func AddNotification(u Notification) (Notification, error){
     return u, err
 }
 
-func GetNotificationsByUser(uid string) (Notification, error){
+func GetNotificationById(id string) (Notification, error){
     db := GetDB()
     
     u := Notification{}
-    err := db.C("notification").Find(bson.M{"uid":bson.ObjectIdHex(uid)}).One(&u)
+    err := db.C("notification").Find(bson.M{"id":bson.ObjectIdHex(id)}).One(&u)
+
+    return u, err
+}
+
+func GetNotificationsByUser(uid string) ([]Notification, error){
+    db := GetDB()
+    
+    u := []Notification{}
+    err := db.C("notification").Find(bson.M{"uid":bson.ObjectIdHex(uid)}).All(&u)
 
     return u, err
 }

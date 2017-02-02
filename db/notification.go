@@ -73,7 +73,7 @@ func DeleteNotificationsByUser(uid string) (error){
 func MarkAsReadAllNotificationsByUser(uid string) (error){
     db := GetDB()
 
-    err := db.C("notification").Update(bson.M{"uid": bson.ObjectIdHex(uid)}, bson.M{"$set": bson.M{"read": true}})
+    _, err := db.C("notification").UpdateAll(bson.M{"uid": bson.ObjectIdHex(uid)}, bson.M{"$set": bson.M{"read": true}})
 
     return err
 }

@@ -98,3 +98,30 @@ func NotificationReadHandler(w http.ResponseWriter, r *http.Request, user db.Use
 
 }
 
+func NotificationReadAllHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+    // mark notification as read
+    
+    if e != nil{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "Error: No User")
+        return
+    }
+
+    if r.Method == "POST"{
+        err := db.MarkAsReadAllNotificationsByUser(user.Id.Hex())
+        if err != nil{
+            w.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(w, "error_notification_not_found")
+            return
+        }
+
+        fmt.Fprintf(w, "ok")
+        return
+    }else{
+        w.WriteHeader(http.StatusInternalServerError)
+        fmt.Fprintf(w, "Error: Wrong Method")
+        return
+    }
+
+}
+

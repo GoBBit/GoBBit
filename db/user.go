@@ -194,14 +194,9 @@ func (u *User) ChangePassword(oldpass, newpass string) (bool){
     return true
 }
 
+func (u *User) MakeAdmin(option bool){
+    u.IsAdmin = option
 
-
-
-
-
-
-
-
-
-
-
+    db := GetDB()
+    db.C("user").Update(bson.M{"slug": u.Slug}, bson.M{"$set": bson.M{"isadmin": option}})
+}

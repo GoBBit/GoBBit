@@ -226,6 +226,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         return
     }
 
+    if !u.Activated{
+        w.WriteHeader(http.StatusUnauthorized)
+        fmt.Fprintf(w, "error_user_not_activated")
+        return
+    }
+
     // Create session
 	sessionHash := utils.GenerateUserSession(u.Id.Hex(), u.Password, config.GetInstance().SITE_KEY)
 

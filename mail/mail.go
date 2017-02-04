@@ -28,6 +28,7 @@ func SendMail(to, subject, message string){
     // and send the email all in one step.
     toArr := []string{to}
     msg := []byte("To: "+ to +"\r\n" +
+        "From: "+ smtpConfig.SenderAddress +"\r\n" +
         "Subject: "+ subject +"\r\n" +
         "\r\n" +
         ""+ message +"\r\n")

@@ -2,18 +2,9 @@ package db
 
 
 import (
-    //"log"
-    //"time"
     "os"
-    //"io"
-    //"strings"
-    //"fmt"
-    //"net/http"
-    //"html"
-    //"encoding/json"
 
     "gopkg.in/mgo.v2"
-
 )
 
 

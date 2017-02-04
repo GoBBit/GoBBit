@@ -11,6 +11,7 @@ import (
     "github.com/tv42/slug"
 
 	"GoBBit/db"
+    "GoBBit/config"
 )
 
 type CommunityCreation struct{
@@ -58,12 +59,12 @@ func CommunityHandler(w http.ResponseWriter, r *http.Request, user db.User, e er
         }
 
         // Security checks
-        if communityUpdate.Name == "" || communityUpdate.Name == " " || len(communityUpdate.Name) > MaxNameLength{
+        if communityUpdate.Name == "" || communityUpdate.Name == " " || len(communityUpdate.Name) > config.GetInstance().MaxNameLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_name")
             return
         }
-        if communityUpdate.Description == "" || communityUpdate.Description == " " || len(communityUpdate.Description) > MaxDescriptionLength || len(communityUpdate.Description) < MinDescriptionLength{
+        if communityUpdate.Description == "" || communityUpdate.Description == " " || len(communityUpdate.Description) > config.GetInstance().MaxDescriptionLength || len(communityUpdate.Description) < config.GetInstance().MinDescriptionLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_content")
             return
@@ -271,7 +272,7 @@ func CommunityTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User
     }
 
     if r.Method == "GET"{
-        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers([]string{communitySlug}, TopicsPerPage, start, user.Ignored_Users)
+        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers([]string{communitySlug}, config.GetInstance().TopicsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_topics_not_found")

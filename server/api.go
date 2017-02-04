@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"time"
-	"os"
     "bytes"
 	"io"
 	"io/ioutil"
@@ -11,44 +10,15 @@ import (
 	"fmt"
 	"net/http"
     "errors"
-	//"net/url"
 	"html"
 	"encoding/json"
 
 	"GoBBit/db"
-	"GoBBit/utils"
+    "GoBBit/utils"
+	"GoBBit/config"
 )
 
-var (
-	Port = ":3000"
-    TopicsPerPage = 20
-    PostsPerPage = 20
-    MaxTitleLength = 140
-    MinTitleLength = 5
-    MaxContentLength = 1000
-    MinContentLength = 5
-    MaxNameLength = 50
-    MaxDescriptionLength = 140
-    MinDescriptionLength = 5
-    SITE_KEY = "Change_Me" // SITE_KEY is the key to generate session and other important stuff, please change it on production
-)
-
-func ConfigEnvVars(){
-
-	if os.Getenv("PORT") != ""{
-		Port = ":" + os.Getenv("PORT")
-	}
-    if os.Getenv("SITE_KEY") != ""{
-        SITE_KEY = os.Getenv("SITE_KEY")
-    }
-}
-
-func ListenAndServe(cmdPort string, staticPath string){
-	ConfigEnvVars()
-	if cmdPort != ""{
-		Port = ":" + cmdPort
-	}
-
+func ListenAndServe(staticPath string){
 	// Setup routes
 	mux := http.NewServeMux()
 
@@ -96,13 +66,14 @@ func ListenAndServe(cmdPort string, staticPath string){
 
 	mux.Handle("/debug/vars", http.DefaultServeMux)
 
-	fmt.Printf("listening on *%s\n", Port)
+    port := ":" + config.GetInstance().Port
+	fmt.Printf("\nListening on *%s\n", port)
 
 	// Start listening
 	s := &http.Server{
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 20 * time.Second,
-		Addr:         Port,
+		Addr:         port,
 		Handler:      mux,
 	}
 	log.Fatal(s.ListenAndServe())
@@ -162,7 +133,7 @@ func Middleware(next func(http.ResponseWriter, *http.Request, db.User, error)) f
             next(w, r, db.User{}, err)
             return
         }
-        validSession := utils.CheckSession(uid, u.Password, timestamp, SITE_KEY, hash)
+        validSession := utils.CheckSession(uid, u.Password, timestamp, config.GetInstance().SITE_KEY, hash)
         if validSession{
             next(w, r, u, nil)
             return
@@ -245,7 +216,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
     }
 
     // Create session
-	sessionHash := utils.GenerateUserSession(u.Id.Hex(), u.Password, SITE_KEY)
+	sessionHash := utils.GenerateUserSession(u.Id.Hex(), u.Password, config.GetInstance().SITE_KEY)
 
     xsess := "xsession=" + sessionHash
     cookie := http.Cookie{Name:"xsession",Value:sessionHash, Path:"/",Expires:time.Now().AddDate(1,0,0)}

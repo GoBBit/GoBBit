@@ -8,6 +8,7 @@ import (
     "html"
 
 	"GoBBit/db"
+    "GoBBit/config"
 )
 
 type UserUpdate struct{
@@ -260,7 +261,7 @@ func UserHomeHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
     start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
 
     if r.Method == "GET"{
-        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers(user.Followed_Communities, TopicsPerPage, start, user.Ignored_Users)
+        topics, err := db.GetTopicsByCommunityWithoutIgnoredUsers(user.Followed_Communities, config.GetInstance().TopicsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_topics_not_found")
@@ -377,7 +378,7 @@ func UserTopicsHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
             return
         }
 
-        topics, err := db.GetTopicsByUser(u.Id.Hex(), TopicsPerPage, start)
+        topics, err := db.GetTopicsByUser(u.Id.Hex(), config.GetInstance().TopicsPerPage, start)
 
         json.NewEncoder(w).Encode(topics)
         return

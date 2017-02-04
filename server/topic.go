@@ -9,6 +9,7 @@ import (
     "html"
 
 	"GoBBit/db"
+    "GoBBit/config"
 )
 
 type TopicCreation struct{
@@ -67,12 +68,12 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         }
 
         // Security checks
-        if topicUpdate.Title == "" || topicUpdate.Title == " " || len(topicUpdate.Title) > MaxTitleLength || len(topicUpdate.Title) < MinTitleLength{
+        if topicUpdate.Title == "" || topicUpdate.Title == " " || len(topicUpdate.Title) > config.GetInstance().MaxTitleLength || len(topicUpdate.Title) < config.GetInstance().MinTitleLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_title")
             return
         }
-        if topicUpdate.Content == "" || topicUpdate.Content == " " || len(topicUpdate.Content) > MaxContentLength || len(topicUpdate.Content) < MinContentLength{
+        if topicUpdate.Content == "" || topicUpdate.Content == " " || len(topicUpdate.Content) > config.GetInstance().MaxContentLength || len(topicUpdate.Content) < config.GetInstance().MinContentLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_content")
             return
@@ -140,12 +141,12 @@ func TopicHandler(w http.ResponseWriter, r *http.Request, user db.User, e error)
         }
 
         // Security checks
-        if topicUpdate.Title == "" || topicUpdate.Title == " " || len(topicUpdate.Title) > MaxTitleLength || len(topicUpdate.Title) < MinTitleLength{
+        if topicUpdate.Title == "" || topicUpdate.Title == " " || len(topicUpdate.Title) > config.GetInstance().MaxTitleLength || len(topicUpdate.Title) < config.GetInstance().MinTitleLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_title")
             return
         }
-        if topicUpdate.Content == "" || topicUpdate.Content == " " || len(topicUpdate.Content) > MaxContentLength || len(topicUpdate.Content) < MinContentLength{
+        if topicUpdate.Content == "" || topicUpdate.Content == " " || len(topicUpdate.Content) > config.GetInstance().MaxContentLength || len(topicUpdate.Content) < config.GetInstance().MinContentLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_content")
             return
@@ -196,7 +197,7 @@ func TopicPostsHandler(w http.ResponseWriter, r *http.Request, user db.User, e e
     start, _ := strconv.Atoi(r.URL.Query().Get("start"))
 
     if r.Method == "GET"{
-        posts, err := db.GetPostsByTopicIdWithoutIgnored(tid, PostsPerPage, start, user.Ignored_Users)
+        posts, err := db.GetPostsByTopicIdWithoutIgnored(tid, config.GetInstance().PostsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_posts_not_found")
@@ -240,7 +241,7 @@ func TopicsRecentHandler(w http.ResponseWriter, r *http.Request, user db.User, e
     start, _ := strconv.Atoi(r.URL.Query().Get("start")) // get from topic num
 
     if r.Method == "GET"{
-        topics, err := db.GetTopicsListWithoutIgnoredUsers(TopicsPerPage, start, user.Ignored_Users)
+        topics, err := db.GetTopicsListWithoutIgnoredUsers(config.GetInstance().TopicsPerPage, start, user.Ignored_Users)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_topics_not_found")

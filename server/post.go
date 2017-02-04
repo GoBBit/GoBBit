@@ -7,7 +7,8 @@ import (
 	"encoding/json"
     "html"
 
-	"GoBBit/db"
+    "GoBBit/db"
+	"GoBBit/config"
 )
 
 type PostCreation struct{
@@ -65,7 +66,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
         }
 
         // Security checks
-        if postUpdate.Content == "" || postUpdate.Content == " " || len(postUpdate.Content) > MaxContentLength || len(postUpdate.Content) < MinContentLength{
+        if postUpdate.Content == "" || postUpdate.Content == " " || len(postUpdate.Content) > config.GetInstance().MaxContentLength || len(postUpdate.Content) < config.GetInstance().MinContentLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_content")
             return
@@ -139,7 +140,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
         }
 
         // Security checks
-        if postUpdate.Content == "" || postUpdate.Content == " " || len(postUpdate.Content) > MaxContentLength || len(postUpdate.Content) < MinContentLength{
+        if postUpdate.Content == "" || postUpdate.Content == " " || len(postUpdate.Content) > config.GetInstance().MaxContentLength || len(postUpdate.Content) < config.GetInstance().MinContentLength{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_invalid_content")
             return

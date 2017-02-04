@@ -25,6 +25,7 @@ type User struct{
     IsAdmin bool `json:"isadmin"`
     IsBanned bool `json:"isbanned"`
     Ignored_Users []bson.ObjectId `json:"ignored_users"` // users id array
+    Activated bool `json:"activated"`
 }
 
 
@@ -192,6 +193,13 @@ func (u *User) ChangePassword(oldpass, newpass string) (bool){
 
     u.Password = utils.CalculateHash(u.Slug + newpass)
     return true
+}
+
+func (u *User) Activate(option bool){
+    u.Activated = option
+
+    db := GetDB()
+    db.C("user").Update(bson.M{"id": u.Id}, bson.M{"$set": bson.M{"activated": option}})
 }
 
 func (u *User) MakeAdmin(option bool){

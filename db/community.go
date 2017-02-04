@@ -121,8 +121,8 @@ func (c *Community) IsBanned(u User) (bool){
 }
 
 func (c *Community) UserCanPost(u User) (bool){
-    // if not banned in the community nor the forum
-    return !c.IsBanned(u) && !u.IsBanned
+    // if not banned in the community nor the forum and is activated user
+    return !c.IsBanned(u) && !u.IsBanned && u.Activated
 }
 
 func (c *Community) IncrementPostsNumber(n int) error{

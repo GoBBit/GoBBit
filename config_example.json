@@ -1,4 +1,5 @@
 {
+    "Domain": "localhost",
     "Port": "3000",
     "SITE_KEY": "Change_Me",
     "TopicsPerPage": 20,
@@ -16,5 +17,14 @@
         "User": "",
         "Pass": "",
         "Name": "GoBBit"
-    }
+    },
+
+    "SMTPConfig":{
+        "Host": "",
+        "Port": "",
+        "User": "",
+        "Pass": "",
+        "SenderAddress": ""
+    },
+    "UserActivationEmailTemplate":"Hi {username}, \nTo activate your account and use it in the forum, you must use the following link: {activationlink}"
 }

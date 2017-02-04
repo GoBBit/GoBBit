@@ -25,7 +25,7 @@ func main(){
     mAdmin := flag.String("admin", "", "Make admin an user by userslug")
     flag.Parse()
 
-    fmt.Printf("\nLoading config.json..")
+    fmt.Printf("\nLoading config..")
     config.CreateInstance(*cfgFile)
     if *port != ""{
         config.GetInstance().Port = *port

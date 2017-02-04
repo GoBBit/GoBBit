@@ -15,7 +15,8 @@ import (
 
 	"GoBBit/db"
     "GoBBit/utils"
-	"GoBBit/config"
+    "GoBBit/config"
+	"GoBBit/mail"
 )
 
 func ListenAndServe(staticPath string){
@@ -54,7 +55,8 @@ func ListenAndServe(staticPath string){
     mux.HandleFunc("/api/communities", Middleware(CommunitiesHandler))
 
 	// Login & LogOut
-	mux.HandleFunc("/register", Middleware(RegisterHandler))
+    mux.HandleFunc("/register", Middleware(RegisterHandler))
+	mux.HandleFunc("/activation", Middleware(ActivationHandler))
     mux.HandleFunc("/login", Middleware(LoginHandler))
 	mux.HandleFunc("/logout", Middleware(LogoutHandler))
 	
@@ -175,11 +177,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
     u.Last_Post_Time = now
     u.Last_Online_Time = now
 
+    // User not activated, we must send activation link on an email
+    u.Activated = !mail.SMTPConfigured()
+
     u, err2 := db.AddUser(u)
     if err2 != nil{
         w.WriteHeader(http.StatusInternalServerError)
         fmt.Fprintf(w, "Error: Unable to create user")
         return
+    }
+
+    if mail.SMTPConfigured(){
+        activationCode := utils.GenerateUserSession(u.Id.Hex(), u.Password, config.GetInstance().SITE_KEY)
+        activationLink := "http://" + config.GetInstance().Domain + "/activation?code=" + activationCode
+        mail.SendUserActivation(u.Email, activationLink, u.Username)
     }
 
     json.NewEncoder(w).Encode(u)
@@ -236,6 +247,41 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, user db.User, e error
     w.Header().Add("Cookie", xsess)
     
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+}
+
+func ActivationHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+
+    code := r.URL.Query().Get("code")
+
+    // split by ":" (parse code)
+    splittedCode := strings.Split(code, ":")
+    if len(splittedCode) < 3{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "Error: Invalid Code")
+        return
+    }
+
+    uid := splittedCode[0]
+    timestamp := splittedCode[1]
+    hash := splittedCode[2]
+    
+    u, err := db.GetUserById(uid)
+    if err != nil{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "Error: Invalid Code")
+        return
+    }
+
+    validCode := utils.CheckSession(uid, u.Password, timestamp, config.GetInstance().SITE_KEY, hash)
+    if validCode{
+        u.Activate(true)
+        http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+        fmt.Fprintf(w, "Activated! Redirecting..")
+    }else{
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintf(w, "Error: Invalid Code")
+        return
+    }
 }
 
 

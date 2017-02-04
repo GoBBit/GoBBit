@@ -30,9 +30,8 @@ func main(){
     if *port != ""{
         config.GetInstance().Port = *port
     }
-
-	fmt.Printf("\nStarting..")
     
+    // Prepare DB
     db.EnsureIndex()
 
     if *mAdmin != ""{

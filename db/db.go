@@ -2,9 +2,9 @@ package db
 
 
 import (
-    "os"
-
     "gopkg.in/mgo.v2"
+
+    "GoBBit/config"
 )
 
 
@@ -14,17 +14,12 @@ type DB struct{
 	Host string
 }
 
-var DB_HOST = map[bool]string{true: os.Getenv("DB_HOST"), false: "localhost"} [os.Getenv("DB_HOST") != ""]
-var DB_USER = map[bool]string{true: os.Getenv("DB_USER"), false: ""} [os.Getenv("DB_USER") != ""]
-var DB_PASS = map[bool]string{true: os.Getenv("DB_PASS"), false: ""} [os.Getenv("DB_PASS") != ""]
-
-var DB_NAME = map[bool]string{true: os.Getenv("DB_NAME"), false: "GoBBit"} [os.Getenv("DB_NAME") != ""]
-
 var instance *DB = nil
 
 func GetInstance() *DB {
     if instance == nil {
-        instance = &DB{Name:DB_NAME, Host:DB_HOST}
+        dbConfig := config.GetInstance().DbConfig
+        instance = &DB{Name:dbConfig.Name, Host:dbConfig.Host}
 
         sess, err := mgo.Dial(instance.Host)
         if err != nil{
@@ -33,8 +28,8 @@ func GetInstance() *DB {
 
         instance.MongoSession = sess
 
-        if DB_USER != "" && DB_PASS != ""{
-        	instance.MongoSession.DB(instance.Name).Login(DB_USER, DB_PASS)
+        if dbConfig.User != "" && dbConfig.Pass != ""{
+        	instance.MongoSession.DB(instance.Name).Login(dbConfig.User, dbConfig.Pass)
         	
         	if err != nil{
         		panic(err)

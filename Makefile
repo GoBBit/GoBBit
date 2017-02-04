@@ -1,6 +1,10 @@
 BUILD=go build
 
-default: linux
+default: install
+
+install:
+	@go install
+	@echo "Binary on ${GOPATH}/bin/GoBBit"
 
 clean:
 	@rm -rf bin/

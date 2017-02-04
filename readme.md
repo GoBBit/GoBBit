@@ -6,11 +6,16 @@ GoBBit - Reddit's like Forum software written in Golang
 
 ### Installation
 
-1. Clone this repository and rename the folder to GoBBit if it is not the name.
+First of all install and configure Golang, then:
+
+1. Clone this repository (in $GOPATH/src) and rename the folder to GoBBit if it is not the name.
 2. Install and configure MongoDB
 3. Run the install script `install.sh` to install all the dependencies.
-4. Compile using Makefile `make`
-5. Configure Enviroment variables to configure the database and others params. (See: https://github.com/GoBBit/GoBBit/blob/master/server/api.go#L35 and https://github.com/GoBBit/GoBBit/blob/master/db/db.go#L26)
+4. Compile using Makefile. For example: `make install` will compile and generate a binary called GoBBit in **$GOPATH/bin**.
+5. Configure the forum using the configure_example.json file and renaming to config.json. (See: https://github.com/GoBBit/GoBBit/blob/master/config/config.go).
+
+Then, you can run using `-c` param to provide a configuration file if the name is not "config.json" or it isn't in the actual directory.
+Example: `bin/gobbit -c path/to/config.json`
 
 ### Forum UI
 

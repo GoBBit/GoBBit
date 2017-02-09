@@ -15,8 +15,8 @@ type Poll struct{
 }
 
 type PollOption struct{
-    Title string
-    Votes []bson.ObjectId // user ids which voted for this option
+    Title string `json:"title"`
+    Votes []bson.ObjectId `json:"votes"` // user ids which voted for this option
 }
 
 
@@ -52,6 +52,14 @@ func DeletePoll(id string) (error){
     db := GetDB()
 
     _, err := db.C("poll").RemoveAll(bson.M{"id":bson.ObjectIdHex(id)})
+
+    return err
+}
+
+func DeletePollByTopic(id string) (error){
+    db := GetDB()
+
+    _, err := db.C("poll").RemoveAll(bson.M{"tid":bson.ObjectIdHex(id)})
 
     return err
 }

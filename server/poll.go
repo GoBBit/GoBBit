@@ -118,7 +118,7 @@ func PollHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
             return
         }
 
-        db.DeletePoll(tid)
+        db.DeletePollByTopic(tid)
         fmt.Fprintf(w, "ok")
     }else{
         w.WriteHeader(http.StatusInternalServerError)

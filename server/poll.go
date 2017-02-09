@@ -19,10 +19,10 @@ type PollCreation struct{
 }
 
 func PollHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
-    pollid := r.URL.Query().Get("pollid")
+    tid := r.URL.Query().Get("tid") // topic id of the poll
 
     if r.Method == "GET"{
-        poll, err := db.GetPollById(pollid)
+        poll, err := db.GetPollByTopic(tid)
         if err != nil{
             w.WriteHeader(http.StatusNotFound)
             fmt.Fprintf(w, "error_poll_not_found")
@@ -99,7 +99,7 @@ func PollHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
         return
     }else if r.Method == "DELETE"{
         // Check permissions
-        topic, err := db.GetTopicById(pollid)
+        topic, err := db.GetTopicById(tid)
         if err != nil{
             w.WriteHeader(http.StatusInternalServerError)
             fmt.Fprintf(w, "error_topic_not_found")
@@ -118,7 +118,7 @@ func PollHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
             return
         }
 
-        db.DeletePoll(pollid)
+        db.DeletePoll(tid)
         fmt.Fprintf(w, "ok")
     }else{
         w.WriteHeader(http.StatusInternalServerError)

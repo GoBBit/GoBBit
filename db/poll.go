@@ -38,6 +38,15 @@ func GetPollById(id string) (Poll, error){
     return u, err
 }
 
+func GetPollByTopic(id string) (Poll, error){
+    db := GetDB()
+    
+    u := Poll{}
+    err := db.C("poll").Find(bson.M{"tid":bson.ObjectIdHex(id)}).One(&u)
+
+    return u, err
+}
+
 
 func DeletePoll(id string) (error){
     db := GetDB()

@@ -61,7 +61,7 @@ func ListenAndServe(staticPath string){
 	// Login & LogOut
     mux.HandleFunc("/register", Middleware(RegisterHandler))
 	mux.HandleFunc("/activation", Middleware(ActivationHandler))
-    mux.HandleFunc("/login", Middleware(LoginHandler))
+    mux.HandleFunc("/login", LoginHandler)
 	mux.HandleFunc("/logout", Middleware(LogoutHandler))
 	
     if staticPath != ""{
@@ -205,7 +205,7 @@ type LoginUser struct{
     Username string
     Password string
 }
-func LoginHandler(w http.ResponseWriter, r *http.Request, user db.User, e error){
+func LoginHandler(w http.ResponseWriter, r *http.Request){
     if r.Method != "POST"{
         w.WriteHeader(http.StatusUnauthorized)
         fmt.Fprintf(w, "Error: Wrong method")

@@ -89,6 +89,8 @@ func CreateMentionsNotificationsFromPost(tid, senderSlug, postContent string){
     mentionRegex := regexp.MustCompile("\\B\\@[\\w\\-]+") // @slug....
     userSlugMentions := mentionRegex.FindAllStringSubmatch(postContent, -1) // array with user slugs
 
+    notifiedUsers := make(map[string]bool, 0) // used to notify only once to each user if there are multiple mentions to the same user
+
     now := time.Now().Unix() * 1000
 
     for _, uslug := range userSlugMentions{
@@ -98,8 +100,8 @@ func CreateMentionsNotificationsFromPost(tid, senderSlug, postContent string){
         if err != nil{
             continue
         }
-        if mentionedUser.Slug == senderSlug{
-            // avoid "self-notifications"
+        if mentionedUser.Slug == senderSlug || notifiedUsers[mentionedUser.Id.Hex()]{
+            // avoid "self-notifications" and multiple notifications for the same user
             continue
         }
 
@@ -111,6 +113,7 @@ func CreateMentionsNotificationsFromPost(tid, senderSlug, postContent string){
             Creation_Date: now,
         }
         AddNotification(n)
+        notifiedUsers[mentionedUser.Id.Hex()] = true
     }
 }
 

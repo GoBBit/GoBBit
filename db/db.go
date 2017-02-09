@@ -66,6 +66,9 @@ func EnsureIndex(){
     db.C("notification").EnsureIndex(mgo.Index{Key: []string{"creation_date"}, Unique: false})
     db.C("notification").EnsureIndex(mgo.Index{Key: []string{"uid"}, Unique: false})
 
+    db.C("poll").EnsureIndex(mgo.Index{Key: []string{"id"}, Unique: true, DropDups: true})
+    db.C("poll").EnsureIndex(mgo.Index{Key: []string{"tid"}, Unique: true, DropDups: true})
+
 }
 
 

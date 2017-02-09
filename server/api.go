@@ -39,6 +39,10 @@ func ListenAndServe(staticPath string){
     mux.HandleFunc("/api/notification/read", Middleware(NotificationReadHandler))
     mux.HandleFunc("/api/notification/read/all", Middleware(NotificationReadAllHandler))
 
+    // Polls Endpoints
+    mux.HandleFunc("/api/poll", Middleware(PollHandler))
+    mux.HandleFunc("/api/poll/vote", Middleware(PollVoteHandler))
+
     // Post Endpoints
     mux.HandleFunc("/api/post", Middleware(PostHandler))
 

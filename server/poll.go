@@ -161,6 +161,9 @@ func PollVoteHandler(w http.ResponseWriter, r *http.Request, user db.User, e err
         }
         db.AddVoteToPoll(vote.PollId, vote.Title, user.Id.Hex())
 
+        // send updated poll
+        poll, _ = db.GetPollById(vote.PollId)
+
         json.NewEncoder(w).Encode(poll)
         return
     }else if r.Method == "DELETE"{
